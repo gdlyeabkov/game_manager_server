@@ -1,8 +1,11 @@
 const mongoose = require('mongoose')
 const express = require('express')
 const path = require('path')
+const serveStatic = require('serve-static')
 
 const app = express()
+
+app.use('/', serveStatic(path.join(__dirname, '/dist')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/odbcs?retryWrites=true&w=majority`;
 
