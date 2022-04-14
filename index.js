@@ -74,7 +74,7 @@ app.get('/api/games/create', (req, res) => {
 
 // })
 
-const port = 4000
-// const port = 8000
+// const port = 4000
+const port = process.env.PORT || 8080
 
 app.listen(port)
