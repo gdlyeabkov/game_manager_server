@@ -28,8 +28,9 @@ mongoose.connect(url, connectionParams)
 
 const UserSchema = new mongoose.Schema({
     login: String,
-    password: String
-}, { collection : 'my_gamers' })
+    password: String,
+    friends: [mongoose.Schema.Types.Map]        
+}, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
 
@@ -178,6 +179,91 @@ app.get('/api/users/create', (req, res) => {
 
 })
 
+app.get('/api/friends/add', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    UserModel.updateOne({ _id: req.query.id },
+    { $push: 
+        {
+            friends: [
+                {
+                    id: req.query.friend
+                }
+            ]
+            
+        }
+    }, (err, user) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            UserModel.updateOne({ _id: req.query.friend },
+            {
+                $push: {
+                    friends: [
+                        {
+                            id: req.query.id
+                        }
+                    ]
+                    
+                }
+            }, (err, user) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                } else {
+                    return res.json({ "status": "OK" })
+                }
+            })
+        }
+    })
+
+})
+
+app.get('/api/friends/delete', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    mongoose.connection.collection("mygamers").updateMany(
+        { _id: req.query.id },
+        { $pull: { 'friends': { id: req.query.friend } } }
+    )
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
+
+app.get('/api/friends/remove', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log(`id: ${req.query.id}; friend: ${req.query.friend}`)
+
+    mongoose.connection.collection("mygamers").updateOne(
+        { _id: req.query.id },
+        { $pull: { 'friends': { 'id': req.query.friend } } }
+    )
+
+    mongoose.connection.collection("mygamers").updateOne(
+        { _id: req.query.friend },
+        { $pull: { 'friends': { 'id': req.query.id } } }
+    )
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
 
 app.get('/api/users/delete', async (req, res) => {
 
@@ -191,7 +277,7 @@ app.get('/api/users/delete', async (req, res) => {
 
 })
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 app.listen(port)
