@@ -359,7 +359,7 @@ app.get('/api/users/delete', async (req, res) => {
 
 })
 
-const port = 4000
-// const port = process.env.PORT || 8080
+// const port = 4000
+const port = process.env.PORT || 8080
 
 app.listen(port)
