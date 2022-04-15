@@ -29,10 +29,17 @@ mongoose.connect(url, connectionParams)
 const UserSchema = new mongoose.Schema({
     login: String,
     password: String,
-    friends: [mongoose.Schema.Types.Map]        
+    friends: [mongoose.Schema.Types.Map]
 }, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
+
+const FriendRequestSchema = new mongoose.Schema({
+    user: String,
+    friend: String
+}, { collection : 'myfriendrequests' })
+    
+const FriendRequestModel = mongoose.model('FriendRequestModel', FriendRequestSchema)
 
 const GameSchema = new mongoose.Schema({
     name: String,
@@ -43,7 +50,16 @@ const GameSchema = new mongoose.Schema({
 const GameModel = mongoose.model('GameModel', GameSchema)
 
 app.get('/api/games/get', (req, res) => {
+    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+   
+    
     let query = GameModel.find({  })
+    
     query.exec((err, games) => {
         if (err) {
             return res.json({ "status": "Error" })
@@ -51,9 +67,37 @@ app.get('/api/games/get', (req, res) => {
             return res.json({ games: games, status: 'OK' })
         }
     })
+    
+})
+
+app.get('/api/friends/requests/get', (req, res) => {
+    
+   
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE"); 
+    
+    let friendRequests = []
+    
+    let query = FriendRequestModel.find({  })
+    query.exec((err, requests) => {
+        if (err) {
+            return res.json({ "status": "Error", 'requests': friendRequests })
+        } else {
+            let friendRequests = requests
+            return res.json({ status: 'OK', 'requests': friendRequests })
+        }
+    })
 })
 
 app.get('/api/users/get', (req, res) => {
+   
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+   
     let query = UserModel.findOne({ _id: req.query.id })
     query.exec((err, user) => {
         if (err) {
@@ -65,6 +109,12 @@ app.get('/api/users/get', (req, res) => {
 })
 
 app.get('/api/users/all', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+   
     let query = UserModel.find({  })
     query.exec((err, users) => {
         if (err) {
@@ -179,13 +229,45 @@ app.get('/api/users/create', (req, res) => {
 
 })
 
-app.get('/api/friends/add', (req, res) => {
+app.get('/api/friends/requests/add', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const friendRequest = new FriendRequestModel({ user: req.query.id, friend: req.query.friend })
+    friendRequest.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/friends/requests/reject', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await FriendRequestModel.deleteOne({ _id: req.query.id })
+    return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/friends/add', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
+    await FriendRequestModel.deleteOne({ _id: req.query.request })
+
     UserModel.updateOne({ _id: req.query.id },
     { $push: 
         {
@@ -251,12 +333,12 @@ app.get('/api/friends/remove', (req, res) => {
 
     mongoose.connection.collection("mygamers").updateOne(
         { _id: req.query.id },
-        { $pull: { 'friends': { 'id': req.query.friend } } }
+        { $pull: { 'friends': { id: req.query.friend } } }
     )
 
     mongoose.connection.collection("mygamers").updateOne(
         { _id: req.query.friend },
-        { $pull: { 'friends': { 'id': req.query.id } } }
+        { $pull: { 'friends': { id: req.query.id } } }
     )
 
     return res.json({
@@ -277,7 +359,7 @@ app.get('/api/users/delete', async (req, res) => {
 
 })
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 app.listen(port)
