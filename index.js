@@ -11,6 +11,8 @@ const { ClientRequest } = require('http')
 
 const saltRounds = 10
 
+const fs = require('fs')
+
 app.use('/', serveStatic(path.join(__dirname, '/dist')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -394,10 +396,93 @@ app.get('/api/users/delete', async (req, res) => {
 
 })
 
+app.get('/api/users/stats/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    fs.readFile(statsFilePath, (err, data) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            const rawStatsData = data.toString()
+            const statsData = JSON.parse(rawStatsData)
+            const updatedUsersCount = statsData.users + 1
+            const updatedStatsData = {
+                users: updatedUsersCount
+            }
+            const updatedRawStatsData = JSON.stringify(updatedStatsData)
+            fs.writeFile(statsFilePath, updatedRawStatsData, (err, data) => {
+                if (err) {
+                    return res.json({ status: 'Error' })
+                } else {
+                    return res.json({ status: 'OK' })
+                }
+            })
+        } 
+    })
+
+    // return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/users/stats/decrease', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    fs.readFile(statsFilePath, (err, data) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            const rawStatsData = data.toString()
+            const statsData = JSON.parse(rawStatsData)
+            const updatedUsersCount = statsData.users - 1
+            const updatedStatsData = {
+                users: updatedUsersCount
+            }
+            const updatedRawStatsData = JSON.stringify(updatedStatsData)
+            fs.writeFile(statsFilePath, updatedRawStatsData, (err, data) => {
+                if (err) {
+                    return res.json({ status: 'Error' })
+                } else {
+                    return res.json({ status: 'OK' })
+                }
+            })
+        } 
+    })
+
+    // return res.json({ status: 'OK' })
+
+})
+
 const port = 4000
 // const port = process.env.PORT || 8080
 
 var clients = []
+
+const pathSeparator = path.sep
+const pathToDir = `${__dirname}${pathSeparator}`
+const statsFilePath = `${pathToDir}stats.txt`
+const isStatsExists = fs.existsSync(statsFilePath)
+const isStatsNotExists = !isStatsExists
+if (isStatsNotExists) {
+    const statsData = {
+        users: 0
+    }
+    const rawStatsData = JSON.stringify(statsData)
+    fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
+        if (err) {
+            console.log('не могу создать статистику')
+        } else {
+            console.log('статистика создана')
+        }
+    })
+}
 
 server.listen(port, () => {
     io.on('connection', client => {
