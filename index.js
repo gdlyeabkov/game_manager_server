@@ -7,6 +7,7 @@ const server = require('http').createServer(app)
 const { Server } = require("socket.io");
 const io = new Server(server)
 const bcrypt = require('bcrypt')
+const { ClientRequest } = require('http')
 
 const saltRounds = 10
 
@@ -396,19 +397,39 @@ app.get('/api/users/delete', async (req, res) => {
 // const port = 4000
 const port = process.env.PORT || 8080
 
+var clients = []
+
 server.listen(port, () => {
     io.on('connection', client => {
+        clients.push(client)
         console.log('connection')
         client.on('user_is_online', (msg) => {
             console.log(`user is online: ${msg}`)
-            let query = FriendModel.find({  })
-            query.exec((err, users) => {
-                if (err) {
-                    return
-                } else {
-                    client.emit('friend_is_online', msg)
-                }
-            })
+            // let query = FriendModel.find({  })
+            // query.exec((err, users) => {
+            //     if (err) {
+            //         return
+            //     } else {
+            //         for (let client of clients) {
+            //             client.emit('friend_is_online', msg)
+            //         }
+            //     }
+            // })
+            io.sockets.emit('friend_is_online', msg)
+        })
+        client.on('user_is_played', (msg) => {
+            console.log(`user is played: ${msg}`)
+            // for (let client of clients) {
+            //     client.emit('friend_is_played', msg)
+            // }
+            io.sockets.emit('friend_is_played', msg)
+        })
+        client.on('user_send_msg', (msg) => {
+            console.log(`user send msg: ${msg}`)
+            // for (let client of clients) {
+            //     client.emit('friend_send_msg', msg)
+            // }
+            io.sockets.emit('friend_send_msg', msg)
         })
     })
 })
