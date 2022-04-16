@@ -424,8 +424,6 @@ app.get('/api/users/stats/increase', async (req, res) => {
         } 
     })
 
-    // return res.json({ status: 'OK' })
-
 })
 
 app.get('/api/users/stats/decrease', async (req, res) => {
@@ -456,12 +454,10 @@ app.get('/api/users/stats/decrease', async (req, res) => {
         } 
     })
 
-    // return res.json({ status: 'OK' })
-
 })
 
-const port = 4000
-// const port = process.env.PORT || 8080
+// const port = 4000
+const port = process.env.PORT || 8080
 
 var clients = []
 
