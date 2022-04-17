@@ -36,7 +36,11 @@ const UserSchema = new mongoose.Schema({
     password: String,
     name: String,
     country: String,
-    about: String
+    about: String,
+    status: {
+        type: String,
+        default: 'online'
+    }
 }, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
@@ -58,7 +62,15 @@ const FriendModel = mongoose.model('FriendModel', FriendSchema)
 const GameSchema = new mongoose.Schema({
     name: String,
     url: String,
-    image: String
+    image: String,
+    users: {
+        type: Number,
+        default: 0
+    },
+    maxUsers: {
+        type: Number,
+        default: 0
+    }
 }, { collection : 'my_digital_distributtion_games' })
     
 const GameModel = mongoose.model('GameModel', GameSchema)
@@ -335,6 +347,21 @@ app.get('/api/friends/delete', async (req, res) => {
 
 })
 
+app.get('/api/games/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await GameModel.deleteMany({  })
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
+
 app.get('/api/user/edit', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -347,6 +374,24 @@ app.get('/api/user/edit', (req, res) => {
         name: req.query.name,
         about: req.query.about,
         country: req.query.country,
+    }, (err, user) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+})
+
+app.get('/api/user/status/set', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    UserModel.updateOne({ _id: req.query.id },
+    {
+        status: req.query.status
     }, (err, user) => {
         if (err) {
             return res.json({ status: 'Error' })        
@@ -393,6 +438,66 @@ app.get('/api/users/delete', async (req, res) => {
       
     await UserModel.deleteMany({  })
     return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/games/stats/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = GameModel.findOne({'_id': req.query.id }, function(err, game) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            const users = game.users
+            const maxUsers = game.maxUsers
+            let updatedUsers = users + 1
+            let updatedMaxUsers = maxUsers
+            const isUpdateMaxUsers = updatedUsers > maxUsers
+            if (isUpdateMaxUsers) {
+                updatedMaxUsers = updatedUsers
+            }
+            GameModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "users": 1 },
+                "$set": { "maxUsers": updatedMaxUsers }
+            }, (err, game) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/games/stats/decrease', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    GameModel.findOne({'_id': req.query.id }, function(err, game) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            const users = game.users
+            GameModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "users": -1 }
+            }, (err, game) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
 
 })
 
@@ -492,8 +597,8 @@ app.get('/api/users/stats/get', async (req, res) => {
 
 })
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 var clients = []
 
