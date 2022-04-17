@@ -639,6 +639,9 @@ server.listen(port, () => {
             //     }
             // })
             io.sockets.emit('friend_is_online', msg)
+
+            io.sockets.emit('friend_is_toggle_status', 'online')
+
         })
         client.on('user_is_played', (msg) => {
             console.log(`user is played: ${msg}`)
@@ -646,6 +649,9 @@ server.listen(port, () => {
             //     client.emit('friend_is_played', msg)
             // }
             io.sockets.emit('friend_is_played', msg)
+        
+            io.sockets.emit('friend_is_toggle_status', 'played')
+        
         })
         client.on('user_send_msg', (msg) => {
             console.log(`user send msg: ${msg}`)
