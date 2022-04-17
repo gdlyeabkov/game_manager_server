@@ -409,9 +409,17 @@ app.get('/api/users/stats/increase', async (req, res) => {
         } else {
             const rawStatsData = data.toString()
             const statsData = JSON.parse(rawStatsData)
-            const updatedUsersCount = statsData.users + 1
+            const statsDataUsers = statsData.users
+            const statsDataMaxUsers = statsData.maxUsers
+            const updatedUsersCount = statsDataUsers + 1
+            let updatedMaxUsersCount = statsDataMaxUsers
+            const isUpdateMaxUsersCount = updatedUsersCount > statsDataMaxUsers
+            if (isUpdateMaxUsersCount) {
+                updatedMaxUsersCount = updatedUsersCount
+            }
             const updatedStatsData = {
-                users: updatedUsersCount
+                users: updatedUsersCount,
+                maxUsers: updatedMaxUsersCount
             }
             const updatedRawStatsData = JSON.stringify(updatedStatsData)
             fs.writeFile(statsFilePath, updatedRawStatsData, (err, data) => {
@@ -439,9 +447,12 @@ app.get('/api/users/stats/decrease', async (req, res) => {
         } else {
             const rawStatsData = data.toString()
             const statsData = JSON.parse(rawStatsData)
-            const updatedUsersCount = statsData.users - 1
+            const statsDataUsers = statsData.users
+            const statsDataMaxUsers = statsData.maxUsers
+            const updatedUsersCount = statsDataUsers - 1
             const updatedStatsData = {
-                users: updatedUsersCount
+                users: updatedUsersCount,
+                maxUsers: statsDataMaxUsers
             }
             const updatedRawStatsData = JSON.stringify(updatedStatsData)
             fs.writeFile(statsFilePath, updatedRawStatsData, (err, data) => {
@@ -456,19 +467,45 @@ app.get('/api/users/stats/decrease', async (req, res) => {
 
 })
 
-// const port = 4000
-const port = process.env.PORT || 8080
+app.get('/api/users/stats/get', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    fs.readFile(statsFilePath, (err, data) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            const rawStatsData = data.toString()
+            const statsData = JSON.parse(rawStatsData)
+            const usersCount = statsData.users
+            const maxUsersCount = statsData.maxUsers
+            return res.json({
+                status: 'OK',
+                users: usersCount,
+                maxUsers: maxUsersCount
+            })
+        } 
+    })
+
+})
+
+const port = 4000
+// const port = process.env.PORT || 8080
 
 var clients = []
 
 const pathSeparator = path.sep
 const pathToDir = `${__dirname}${pathSeparator}`
 const statsFilePath = `${pathToDir}stats.txt`
-const isStatsExists = fs.existsSync(statsFilePath)
-const isStatsNotExists = !isStatsExists
-if (isStatsNotExists) {
+// const isStatsExists = fs.existsSync(statsFilePath)
+// const isStatsNotExists = !isStatsExists
+// if (isStatsNotExists) {
     const statsData = {
-        users: 0
+        users: 0,
+        maxUsers: 0
     }
     const rawStatsData = JSON.stringify(statsData)
     fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
@@ -478,7 +515,7 @@ if (isStatsNotExists) {
             console.log('статистика создана')
         }
     })
-}
+// }
 
 server.listen(port, () => {
     io.on('connection', client => {
