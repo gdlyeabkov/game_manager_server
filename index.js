@@ -654,5 +654,12 @@ server.listen(port, () => {
             // }
             io.sockets.emit('friend_send_msg', msg)
         })
+        client.on('user_is_toggle_status', (msg) => {
+            console.log(`user is toggle status: ${msg}`)
+            // for (let client of clients) {
+            //     client.emit('friend_send_msg', msg)
+            // }
+            io.sockets.emit('friend_is_toggle_status', msg)
+        })
     })
 })
