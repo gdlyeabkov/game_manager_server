@@ -59,6 +59,14 @@ const FriendSchema = new mongoose.Schema({
     
 const FriendModel = mongoose.model('FriendModel', FriendSchema)
 
+const MsgSchema = new mongoose.Schema({
+    user: String,
+    friend: String,
+    content: String
+}, { collection : 'mymsgs' })
+    
+const MsgModel = mongoose.model('MsgModel', MsgSchema)
+
 const GameSchema = new mongoose.Schema({
     name: String,
     url: String,
@@ -91,6 +99,27 @@ app.get('/api/games/get', (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ games: games, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/msgs/get', (req, res) => {
+    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+   
+    
+    let query = MsgModel.find({  })
+    
+    query.exec((err, msgs) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ msgs: msgs, status: 'OK' })
         }
     })
     
@@ -332,6 +361,24 @@ app.get('/api/friends/add', async (req, res) => {
 
 })
 
+app.get('/api/msgs/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content })
+    msg.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.get('/api/friends/delete', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -340,6 +387,21 @@ app.get('/api/friends/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
     await FriendModel.deleteMany({  })
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
+
+app.get('/api/msgs/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await MsgModel.deleteMany({  })
 
     return res.json({
         'status': 'OK'
