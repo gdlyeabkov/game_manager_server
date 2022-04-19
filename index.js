@@ -729,5 +729,12 @@ server.listen(port, () => {
             // }
             io.sockets.emit('friend_is_toggle_status', msg)
         })
+        client.on('user_write_msg', (msg) => {
+            console.log(`user write msg: ${msg}`)
+            // for (let client of clients) {
+            //     client.emit('friend_send_msg', msg)
+            // }
+            io.sockets.emit('friend_write_msg', msg)
+        })
     })
 })
