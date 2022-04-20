@@ -659,8 +659,8 @@ app.get('/api/users/stats/get', async (req, res) => {
 
 })
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 var clients = []
 
@@ -690,51 +690,29 @@ server.listen(port, () => {
         console.log('connection')
         client.on('user_is_online', (msg) => {
             console.log(`user is online: ${msg}`)
-            // let query = FriendModel.find({  })
-            // query.exec((err, users) => {
-            //     if (err) {
-            //         return
-            //     } else {
-            //         for (let client of clients) {
-            //             client.emit('friend_is_online', msg)
-            //         }
-            //     }
-            // })
             io.sockets.emit('friend_is_online', msg)
-
             io.sockets.emit('friend_is_toggle_status', 'online')
-
         })
         client.on('user_is_played', (msg) => {
             console.log(`user is played: ${msg}`)
-            // for (let client of clients) {
-            //     client.emit('friend_is_played', msg)
-            // }
             io.sockets.emit('friend_is_played', msg)
-        
             io.sockets.emit('friend_is_toggle_status', 'played')
-        
         })
         client.on('user_send_msg', (msg) => {
             console.log(`user send msg: ${msg}`)
-            // for (let client of clients) {
-            //     client.emit('friend_send_msg', msg)
-            // }
             io.sockets.emit('friend_send_msg', msg)
         })
         client.on('user_is_toggle_status', (msg) => {
             console.log(`user is toggle status: ${msg}`)
-            // for (let client of clients) {
-            //     client.emit('friend_send_msg', msg)
-            // }
             io.sockets.emit('friend_is_toggle_status', msg)
         })
         client.on('user_write_msg', (msg) => {
             console.log(`user write msg: ${msg}`)
-            // for (let client of clients) {
-            //     client.emit('friend_send_msg', msg)
-            // }
             io.sockets.emit('friend_write_msg', msg)
+        })
+        client.on('user_send_friend_request', (msg) => {
+            console.log(`user send friend request: ${msg}`)
+            io.sockets.emit('user_receive_friend_request', msg)
         })
     })
 })
