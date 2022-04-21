@@ -1,0 +1,60 @@
+<form
+    ngNoForm
+    #form
+    method="POST"
+    action="`/?api/games/create?name=${gameName}&url=&img="
+    class="d-flex justify-content flex-column align-items-center"
+>
+    <input
+        placeholder="Название игры"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="gameName"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <!-- <input
+        name="gameDistributive"
+        placeholder="Ссылка на дистрибутив игры"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="gameUrl"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <input
+        name="gameThumbnail"
+        placeholder="Ссылка на иконку игры"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="gameImg"
+        [ngModelOptions]="{standalone:true}"
+    /> -->
+    <input
+        name="gameDistributive"
+        placeholder="Ссылка на дистрибутив игры"
+        type="file"
+        class="m-2 w-25 form-control"
+        #gameUrl
+    />
+    <input
+        name="gameThumbnail"
+        placeholder="Ссылка на иконку игры"
+        type="file"
+        class="m-2 w-25 form-control"
+        #gameImg
+    />
+    <!-- <button
+        class="btn btn-primary"
+        (click)="createGame()"
+    >
+        Добавить игру
+    </button> -->
+    <button
+        class="btn btn-primary"
+        type="submit"
+    >
+        Добавить игру
+    </button>
+</form>
+<style>
+
+</style>
