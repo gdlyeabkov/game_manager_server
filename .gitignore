@@ -1,5 +1,4 @@
 # compiled output
-/client/dist
 /client/tmp
 /client/out-tsc
 # Only exists if Bazel was run
