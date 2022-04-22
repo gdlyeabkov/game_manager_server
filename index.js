@@ -7,7 +7,7 @@ const server = require('http').createServer(app)
 const { Server } = require("socket.io");
 const io = new Server(server)
 const bcrypt = require('bcrypt')
-const { ClientRequest } = require('http')
+const mimeTypes = require('mime-types')
 
 const saltRounds = 10
 
@@ -521,7 +521,31 @@ app.get('/api/user/avatar', (req, res) => {
     
     console.log('отправляю аватар')
 
-    return res.sendFile(__dirname + `/uploads/users/${req.query.id}/${req.query.id}.png`)
+    fs.readdir(`${__dirname}/uploads/users/${req.query.id}`, (err, data) => {
+        if (err) {
+            return
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                console.log(`file: ${file}; mime: ${mime}`)
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return
+            } else {
+                return res.sendFile(`${__dirname}/uploads/users/${req.query.id}/${req.query.id}${ext}`)
+            }
+        }
+    })
+    
+    // return res.sendFile(__dirname + `/uploads/users/${req.query.id}/${req.query.id}.png`)
 
 })
 
@@ -534,7 +558,31 @@ app.get('/api/game/thumbnail', (req, res) => {
     
     console.log('отправляю миниатюру')
 
-    return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.png`)
+    fs.readdir(`${__dirname}/uploads/games/${req.query.name}`, (err, data) => {
+        if (err) {
+            return
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                console.log(`file: ${file}; mime: ${mime}`)
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return
+            } else {
+                return res.sendFile(`${__dirname}/uploads/games/${req.query.name}/${req.query.name}${ext}`)
+            }
+        }
+    })
+
+    // return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.png`)
 
 })
 
@@ -819,8 +867,8 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 })
 
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 var clients = []
 
