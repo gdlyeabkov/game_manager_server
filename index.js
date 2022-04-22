@@ -26,8 +26,8 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage })
 
-app.use('/', serveStatic(path.join(__dirname, '/dist')))
-// app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
+// app.use('/', serveStatic(path.join(__dirname, '/dist')))
+app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
 
