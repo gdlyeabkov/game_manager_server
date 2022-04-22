@@ -867,8 +867,8 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 })
 
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 var clients = []
 
