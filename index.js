@@ -15,18 +15,66 @@ const fs = require('fs')
 
 const multer  = require('multer')
 
-const storage = multer.diskStorage({
+const gameStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads')
+        const gameName = req.query.name
+        const gamePath = `${pathToDir}uploads/games/${gameName}`
+        const isGamePathExists = fs.existsSync(gamePath)
+        const isGamePathNotExists = !isGamePathExists
+        if (isGamePathNotExists) {
+            fs.mkdirSync(gamePath)
+        }
+        cb(null, `uploads/games/${gameName}`)
     },
     filename: function (req, file, cb) {
-      // cb(null, file.originalname)
-      cb(null, req.query.name)
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const gameName = req.query.name
+        const gamePath = `${pathToDir}uploads/games/${gameName}`
+        const isGamePathExists = fs.existsSync(gamePath)
+        const isGamePathNotExists = !isGamePathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isGamePathNotExists) {
+            fs.mkdirSync(gamePath)
+            cb(null, `${gameName}${ext}`)
+        } else {
+            cb(null, `${gameName}${ext}`)
+        }
     }
 })
-const upload = multer({ storage: storage })
+const gameUpload = multer({ storage: gameStorage })
 
-// app.use('/', serveStatic(path.join(__dirname, '/dist')))
+const usersStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const userId = req.query.id
+        const userPath = `${pathToDir}uploads/users/${userId}`
+        const isUserPathExists = fs.existsSync(userPath)
+        const isUserPathNotExists = !isUserPathExists
+        if (isUserPathNotExists) {
+            fs.mkdirSync(userPath)
+        }
+        cb(null, `uploads/users/${userId}`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const userId = req.query.id
+        const userPath = `${pathToDir}uploads/users/${userId}`
+        const isUserPathExists = fs.existsSync(userPath)
+        const isUserPathNotExists = !isUserPathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isUserPathNotExists) {
+            fs.mkdirSync(userPath)
+            cb(null, `${userId}${ext}`)
+        } else {
+            cb(null, `${userId}${ext}`)
+        }
+    }
+})
+const usersUpload = multer({ storage: usersStorage })
+
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -301,6 +349,11 @@ app.get('/api/users/create', (req, res) => {
                         })
                     } else {
                         userId = user._id
+                        
+                        const pathToDir = `${__dirname}${pathSeparator}`
+                        const userPath = `${pathToDir}uploads/users/${userId}`
+                        fs.mkdirSync(userPath)
+                        
                         return res.json({
                             status: 'OK',
                             'id': userId
@@ -438,7 +491,27 @@ app.get('/api/games/delete', async (req, res) => {
 
 })
 
-app.get('/api/user/edit', (req, res) => {
+// app.get('/api/user/edit', (req, res) => {
+    
+//     res.setHeader('Access-Control-Allow-Origin', '*');
+//     res.setHeader('Access-Control-Allow-Credentials', true);
+//     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+//     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+//     UserModel.updateOne({ _id: req.query.id },
+//     {
+//         name: req.query.name,
+//         about: req.query.about,
+//         country: req.query.country,
+//     }, (err, user) => {
+//         if (err) {
+//             return res.json({ status: 'Error' })        
+//         }
+//         return res.json({ status: 'OK' })
+//     })
+// })
+
+app.post('/api/user/edit', usersUpload.any, (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -684,7 +757,7 @@ app.get('/api/users/stats/get', async (req, res) => {
 
 // })
 
-app.post('/api/games/create', upload.fields([{name: 'gameDistributive', maxCount: 1}, {name: 'gameThumbnail', maxCount: 1}]), (req, res) => {
+app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxCount: 1}, {name: 'gameThumbnail', maxCount: 1}]), (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -696,17 +769,18 @@ app.post('/api/games/create', upload.fields([{name: 'gameDistributive', maxCount
     const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image })
     game.save(function (err) {
         if (err) {
-            return res.json({ "status": "Error" })
+            // return res.json({ "status": "Error" })
         } else {
-            return res.json({ "status": "OK" })
+            // return res.json({ "status": "OK" })
         }
     })
+    return res.redirect('/')
 
 })
 
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 var clients = []
 
