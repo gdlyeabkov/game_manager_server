@@ -124,7 +124,8 @@ const FriendModel = mongoose.model('FriendModel', FriendSchema)
 const MsgSchema = new mongoose.Schema({
     user: String,
     friend: String,
-    content: String
+    content: String,
+    type: String
 }, { collection : 'mymsgs' })
     
 const MsgModel = mongoose.model('MsgModel', MsgSchema)
@@ -435,7 +436,7 @@ app.get('/api/msgs/add', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content })
+    const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type })
     msg.save(function (err) {
         if (err) {
             return res.json({ "status": "Error" })
@@ -511,7 +512,46 @@ app.get('/api/games/delete', async (req, res) => {
 //     })
 // })
 
-app.post('/api/user/edit', usersUpload.any, (req, res) => {
+app.get('/api/user/avatar', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю аватар')
+
+    return res.sendFile(__dirname + `/uploads/users/${req.query.id}/${req.query.id}.png`)
+
+})
+
+app.get('/api/game/thumbnail', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю миниатюру')
+
+    return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.png`)
+
+})
+
+app.get('/api/game/distributive', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю дистрибутив')
+
+    return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`)
+
+})
+
+app.post('/api/user/edit', usersUpload.any(), (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -757,7 +797,7 @@ app.get('/api/users/stats/get', async (req, res) => {
 
 // })
 
-app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxCount: 1}, {name: 'gameThumbnail', maxCount: 1}]), (req, res) => {
+app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxCount: 1}, {name: 'gameThumbnail', maxCount: 1}]), async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -774,13 +814,13 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
             // return res.json({ "status": "OK" })
         }
     })
-    return res.redirect('/')
+    return await res.redirect('/')
 
 })
 
 
-const port = 4000
-// const port = process.env.PORT || 8080
+// const port = 4000
+const port = process.env.PORT || 8080
 
 var clients = []
 
