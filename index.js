@@ -75,6 +75,35 @@ const usersStorage = multer.diskStorage({
 })
 const usersUpload = multer({ storage: usersStorage })
 
+const msgsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const msgPath = `${pathToDir}uploads/msgs`
+        const isMsgPathExists = fs.existsSync(msgPath)
+        const isMsgPathNotExists = !isMsgPathExists
+        if (isMsgPathNotExists) {
+            fs.mkdirSync(msgPath)
+        }
+        cb(null, `uploads/msgs`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const msgId = req.query.id
+        const msgPath = `${pathToDir}uploads/msgs`
+        const isMsgPathExists = fs.existsSync(msgPath)
+        const isMsgPathNotExists = !isMsgPathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isMsgPathNotExists) {
+            fs.mkdirSync(msgPath)
+            cb(null, `${msgId}${ext}`)
+        } else {
+            cb(null, `${msgId}${ext}`)
+        }
+    }
+})
+const msgsUpload = multer({ storage: msgsStorage })
+
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -106,6 +135,13 @@ const UserSchema = new mongoose.Schema({
 }, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
+
+const NewsSchema = new mongoose.Schema({
+    title: String,
+    content: String
+}, { collection : 'mynews' })
+    
+const NewsModel = mongoose.model('NewsModel', NewsSchema)
 
 const FriendRequestSchema = new mongoose.Schema({
     user: String,
@@ -162,6 +198,27 @@ app.get('/api/games/get', (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ games: games, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/news/get', (req, res) => {
+    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+   
+    
+    let query = NewsModel.find({  })
+    
+    query.exec((err, news) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ news: news, status: 'OK' })
         }
     })
     
@@ -289,24 +346,6 @@ app.get('/api/users/check', (req, res) => {
     })
 
 })
-
-// app.get('/api/games/create', (req, res) => {
-        
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Credentials', true);
-//     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
-//     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-
-//     const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image })
-//     game.save(function (err) {
-//         if (err) {
-//             return res.json({ "status": "Error" })
-//         } else {
-//             return res.json({ "status": "OK" })
-//         }
-//     })
-
-// })
 
 app.get('/api/users/create', (req, res) => {
         
@@ -447,6 +486,44 @@ app.get('/api/msgs/add', async (req, res) => {
 
 })
 
+app.post('/api/msgs/add', msgsUpload.any(), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type })
+    msg.save(function (err, newMsg) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            const generatedId = newMsg._id
+            const mime = req.query.ext
+            console.log(`generatedId: ${generatedId}`)
+            MsgModel.updateOne({ _id: generatedId },
+            {
+                content: mime
+            }, (err, msg) => {
+                if (err) {
+                    return res.json({ status: 'Error' })        
+                }
+                const pathSeparator = path.sep
+                const pathToDir = `${__dirname}${pathSeparator}`
+                const msgPath = `${pathToDir}uploads/msgs/hash${req.query.ext}`
+                const newMsgPath = `${pathToDir}uploads/msgs/${generatedId}${req.query.ext}`
+                fs.rename(msgPath, newMsgPath, (err) => {
+                    if (err) {
+                        return res.json({ status: 'Error', id: generatedId, content: req.query.ext })
+                    }
+                    return res.json({ status: 'OK', id: generatedId, content: req.query.ext })
+                })
+            })
+        }
+    })
+
+})
+
 app.get('/api/friends/delete', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -492,25 +569,20 @@ app.get('/api/games/delete', async (req, res) => {
 
 })
 
-// app.get('/api/user/edit', (req, res) => {
+app.get('/api/news/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Credentials', true);
-//     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
-//     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-    
-//     UserModel.updateOne({ _id: req.query.id },
-//     {
-//         name: req.query.name,
-//         about: req.query.about,
-//         country: req.query.country,
-//     }, (err, user) => {
-//         if (err) {
-//             return res.json({ status: 'Error' })        
-//         }
-//         return res.json({ status: 'OK' })
-//     })
-// })
+    await NewsModel.deleteMany({  })
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
 
 app.get('/api/user/avatar', (req, res) => {
 
@@ -544,8 +616,6 @@ app.get('/api/user/avatar', (req, res) => {
             }
         }
     })
-    
-    // return res.sendFile(__dirname + `/uploads/users/${req.query.id}/${req.query.id}.png`)
 
 })
 
@@ -582,7 +652,18 @@ app.get('/api/game/thumbnail', (req, res) => {
         }
     })
 
-    // return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.png`)
+})
+
+app.get('/api/msgs/thumbnail', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю миниатюру сообщения')
+
+    return res.sendFile(`${__dirname}/uploads/msgs/${req.query.id}${req.query.content}`)
 
 })
 
@@ -597,7 +678,6 @@ app.get('/api/game/distributive', (req, res) => {
     
     console.log(`отправляю дистрибутив ${__dirname}/uploads/games/${req.query.name}/${req.query.name}.exe ${req.query.name}.exe`)
 
-    // return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`, `${req.query.name}.exe`)
     res.writeHead(200, {"Content-Type": "application/x-msdownload"})
     let file = fs.createReadStream(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`)
     file.pipe(res)
@@ -839,16 +919,6 @@ app.get('/api/users/stats/get', async (req, res) => {
 
 })
 
-// app.get('/api/games/distributive', (req, res)=>{
-        
-//     res.setHeader('Access-Control-Allow-Origin', '*');
-//     res.setHeader('Access-Control-Allow-Credentials', true);
-//     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
-//     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-    
-//     res.sendFile(__dirname + `/uploads/distributtives/${req.query.id}.exe`)
-
-// })
 
 app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxCount: 1}, {name: 'gameThumbnail', maxCount: 1}]), async (req, res) => {
         
@@ -861,13 +931,29 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
     const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image })
     game.save(function (err) {
-        if (err) {
-            // return res.json({ "status": "Error" })
-        } else {
-            // return res.json({ "status": "OK" })
-        }
+
     })
     return await res.redirect('/')
+
+})
+
+app.get('/api/news/create', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю новость')
+
+    const news = new NewsModel({ title: req.query.title, content: req.query.content })
+    news.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
 
 })
 
@@ -880,22 +966,18 @@ var clients = []
 const pathSeparator = path.sep
 const pathToDir = `${__dirname}${pathSeparator}`
 const statsFilePath = `${pathToDir}stats.txt`
-// const isStatsExists = fs.existsSync(statsFilePath)
-// const isStatsNotExists = !isStatsExists
-// if (isStatsNotExists) {
-    const statsData = {
-        users: 0,
-        maxUsers: 0
+const statsData = {
+    users: 0,
+    maxUsers: 0
+}
+const rawStatsData = JSON.stringify(statsData)
+fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
+    if (err) {
+        console.log('не могу создать статистику')
+    } else {
+        console.log('статистика создана')
     }
-    const rawStatsData = JSON.stringify(statsData)
-    fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
-        if (err) {
-            console.log('не могу создать статистику')
-        } else {
-            console.log('статистика создана')
-        }
-    })
-// }
+})
 
 server.listen(port, () => {
     io.on('connection', client => {
