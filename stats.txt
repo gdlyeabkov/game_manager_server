@@ -1,1 +1,1 @@
-{"users":9,"maxUsers":9}
+{"users":0,"maxUsers":0}

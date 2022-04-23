@@ -592,10 +592,15 @@ app.get('/api/game/distributive', (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    res.setHeader('Content-type', 'application/x-msdownload');
+    res.setHeader('Content-disposition', 'attachment; filename='+ `${req.query.name}.exe`);
     
-    console.log('отправляю дистрибутив')
+    console.log(`отправляю дистрибутив ${__dirname}/uploads/games/${req.query.name}/${req.query.name}.exe ${req.query.name}.exe`)
 
-    return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`)
+    // return res.sendFile(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`, `${req.query.name}.exe`)
+    res.writeHead(200, {"Content-Type": "application/x-msdownload"})
+    let file = fs.createReadStream(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`)
+    file.pipe(res)
 
 })
 
@@ -867,8 +872,8 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 })
 
 
-const port = 4000
-// const port = process.env.PORT || 8080
+// const port = 4000
+const port = process.env.PORT || 8080
 
 var clients = []
 
@@ -921,6 +926,10 @@ server.listen(port, () => {
         client.on('user_send_friend_request', (msg) => {
             console.log(`user send friend request: ${msg}`)
             io.sockets.emit('user_receive_friend_request', msg)
+        })
+        client.on('user_is_speak', (msg) => {
+            console.log(`user is speak: ${msg}`)
+            io.sockets.emit('friend_is_speak', msg)
         })
     })
 })
