@@ -143,6 +143,36 @@ const NewsSchema = new mongoose.Schema({
     
 const NewsModel = mongoose.model('NewsModel', NewsSchema)
 
+const ForumSchema = new mongoose.Schema({
+    title: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'myforums' })
+    
+const ForumModel = mongoose.model('ForumModel', ForumSchema)
+
+const ForumTopicSchema = new mongoose.Schema({
+    forum: String,
+    title: String,
+    user: String
+}, { collection : 'myforumtopics' })
+    
+const ForumTopicModel = mongoose.model('ForumTopicModel', ForumTopicSchema)
+
+const ForumMsgSchema = new mongoose.Schema({
+    topic: String,
+    user: String,
+    content: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'myforummsgs' })
+    
+const ForumMsgModel = mongoose.model('ForumMsgModel', ForumMsgSchema)
+
 const FriendRequestSchema = new mongoose.Schema({
     user: String,
     friend: String
@@ -161,7 +191,11 @@ const MsgSchema = new mongoose.Schema({
     user: String,
     friend: String,
     content: String,
-    type: String
+    type: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
 }, { collection : 'mymsgs' })
     
 const MsgModel = mongoose.model('MsgModel', MsgSchema)
@@ -198,6 +232,102 @@ app.get('/api/games/get', (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ games: games, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/forums/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ForumModel.find({  })
+    
+    query.exec((err, forums) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ forums: forums, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/forums/get', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ForumModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, forum) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ forum: forum, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/forums/topics/get', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ForumTopicModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, topic) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ topic: topic, status: 'OK' })
+        }
+    })
+    
+})
+
+
+app.get('/api/forum/topics/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ForumTopicModel.find({  })
+    
+    query.exec((err, topics) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ topics: topics, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/forum/topics/get', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ForumTopicModel.find({ forum: req.query.id })
+    
+    query.exec((err, topics) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ topics: topics, status: 'OK' })
         }
     })
     
@@ -751,6 +881,30 @@ app.get('/api/friends/requests/delete', async (req, res) => {
 
 })
 
+app.get('/api/forums/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await ForumModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/forums/topics/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await ForumTopicModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
 app.get('/api/users/delete', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -937,6 +1091,113 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
 })
 
+app.get('/api/forums/create', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю форум')
+
+    const forum = new ForumModel({ title: req.query.title })
+    forum.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/forums/topics/create', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю обсуждение')
+
+    const topic = new ForumTopicModel({ forum: req.query.forum, title: req.query.title, user: req.query.user })
+    topic.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/forums/topics/msgs/create', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю сообщение')
+
+    const msg = new ForumMsgModel({ user: req.query.user, topic: req.query.topic, content: req.query.content })
+    msg.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/forum/topic/msgs/get', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let query = ForumMsgModel.find({ topic: req.query.topic })
+    
+    query.exec((err, msgs) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ msgs: msgs, status: 'OK' })
+        }
+    })
+
+})
+
+app.get('/api/forums/topics/msgs/all', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let query = ForumMsgModel.find({  })
+    
+    query.exec((err, msgs) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ msgs: msgs, status: 'OK' })
+        }
+    })
+
+})
+
 app.get('/api/news/create', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1012,6 +1273,10 @@ server.listen(port, () => {
         client.on('user_is_speak', (msg) => {
             console.log(`user is speak: ${msg}`)
             io.sockets.emit('friend_is_speak', msg)
+        })
+        client.on('user_send_msg_to_forum', (msg) => {
+            console.log(`user send msg to forum: ${msg}`)
+            io.sockets.emit('user_send_msg_to_my_topic', msg)
         })
     })
 })
