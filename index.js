@@ -743,7 +743,7 @@ app.get('/api/user/avatar', (req, res) => {
 
     fs.readdir(`${__dirname}/uploads/users/${req.query.id}`, (err, data) => {
         if (err) {
-            return
+            return res.sendFile(`${__dirname}/uploads/defaults/default_avatar.png`)
         } else {
             let ext = ''
             for (let file of data) {
@@ -758,7 +758,8 @@ app.get('/api/user/avatar', (req, res) => {
             const extLength = ext.length
             const isNotFound = extLength <= 0
             if (isNotFound) {
-                return
+                // return 'https://cdn2.iconfinder.com/data/icons/ios-7-icons/50/user_male-128.png'
+                return res.sendFile(`${__dirname}/uploads/defaults/default_avatar.png`)
             } else {
                 return res.sendFile(`${__dirname}/uploads/users/${req.query.id}/${req.query.id}${ext}`)
             }
@@ -778,7 +779,7 @@ app.get('/api/game/thumbnail', (req, res) => {
 
     fs.readdir(`${__dirname}/uploads/games/${req.query.name}`, (err, data) => {
         if (err) {
-            return
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
         } else {
             let ext = ''
             for (let file of data) {
@@ -793,7 +794,7 @@ app.get('/api/game/thumbnail', (req, res) => {
             const extLength = ext.length
             const isNotFound = extLength <= 0
             if (isNotFound) {
-                return
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
             } else {
                 return res.sendFile(`${__dirname}/uploads/games/${req.query.name}/${req.query.name}${ext}`)
             }
@@ -1253,8 +1254,8 @@ app.get('/api/news/create', async (req, res) => {
 })
 
 
-// const port = 4000
-const port = process.env.PORT || 8080
+const port = 4000
+// const port = process.env.PORT || 8080
 
 var clients = []
 
