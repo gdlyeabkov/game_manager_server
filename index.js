@@ -131,6 +131,22 @@ const UserSchema = new mongoose.Schema({
     status: {
         type: String,
         default: 'online'
+    },
+    friendsListSettings: {
+        type: String,
+        default: 'public'
+    },
+    gamesSettings: {
+        type: String,
+        default: 'friends'
+    },
+    equipmentSettings: {
+        type: String,
+        default: 'friends'
+    },
+    commentsSettings: {
+        type: String,
+        default: 'friends'
     }
 }, { collection : 'mygamers' })
     
@@ -425,7 +441,9 @@ app.get('/api/users/get', (req, res) => {
    
     let query = UserModel.findOne({ _id: req.query.id })
     query.exec((err, user) => {
-        if (err) {
+        const isUserNotFound = user === null
+        const isError = isUserNotFound || err
+        if (isError) {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ user: user, status: 'OK' })
@@ -509,8 +527,8 @@ app.get('/api/users/create', (req, res) => {
                 let encodedPassword = "#"
                 const salt = bcrypt.genSalt(saltRounds)
                 encodedPassword = bcrypt.hashSync(req.query.password, saltRounds)
-
-                const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Юный геймер' })
+                // const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Юный геймер', friendsListSettings: 'public', gamesSettings: 'friends', equipmentSettings: 'friends', commentsSettings: 'friends'  })
+                const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Юный геймер'  })
                 user.save(function (err) {
                     if (err) {
                         return res.json({
@@ -826,6 +844,10 @@ app.post('/api/user/edit', usersUpload.any(), (req, res) => {
         name: req.query.name,
         about: req.query.about,
         country: req.query.country,
+        friendsListSettings: req.query.friends,
+        gamesSettings: req.query.games,
+        equipmentSettings: req.query.equipment,
+        commentsSettings: req.query.comments,
     }, (err, user) => {
         if (err) {
             return res.json({ status: 'Error' })        
