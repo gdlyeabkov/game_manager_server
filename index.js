@@ -905,6 +905,18 @@ app.get('/api/forums/topics/delete', async (req, res) => {
 
 })
 
+app.get('/api/forums/topics/msgs/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await ForumMsgModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
 app.get('/api/users/delete', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
