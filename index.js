@@ -15,6 +15,11 @@ const fs = require('fs')
 
 const multer  = require('multer')
 
+const { ExpressPeerServer } = require('peer')
+const peerServer = ExpressPeerServer(server, {
+    debug: true
+})
+
 const gameStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const gameName = req.query.name
@@ -105,6 +110,8 @@ const msgsStorage = multer.diskStorage({
 const msgsUpload = multer({ storage: msgsStorage })
 
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
+
+app.use('/peerjs', peerServer);
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
 
