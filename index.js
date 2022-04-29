@@ -6,6 +6,50 @@ const app = express()
 const server = require('http').createServer(app)
 const { Server } = require("socket.io");
 const io = new Server(server)
+
+io.on('connection', client => {
+    clients.push(client)
+    console.log('connection')
+    client.on('user_is_online', (msg) => {
+        console.log(`user is online: ${msg}`)
+        io.sockets.emit('friend_is_online', msg)
+        io.sockets.emit('friend_is_toggle_status', 'online')
+    })
+    client.on('user_is_played', (msg) => {
+        console.log(`user is played: ${msg}`)
+        io.sockets.emit('friend_is_played', msg)
+        io.sockets.emit('friend_is_toggle_status', 'played')
+    })
+    client.on('user_send_msg', (msg) => {
+        console.log(`user send msg: ${msg}`)
+        io.sockets.emit('friend_send_msg', msg)
+    })
+    client.on('user_is_toggle_status', (msg) => {
+        console.log(`user is toggle status: ${msg}`)
+        io.sockets.emit('friend_is_toggle_status', msg)
+    })
+    client.on('user_write_msg', (msg) => {
+        console.log(`user write msg: ${msg}`)
+        io.sockets.emit('friend_write_msg', msg)
+    })
+    client.on('user_send_friend_request', (msg) => {
+        console.log(`user send friend request: ${msg}`)
+        io.sockets.emit('user_receive_friend_request', msg)
+    })
+    client.on('user_is_speak', (msg) => {
+        console.log(`user is speak: ${msg}`)
+        io.sockets.emit('friend_is_speak', msg)
+    })
+    client.on('user_send_msg_to_forum', (msg) => {
+        console.log(`user send msg to forum: ${msg}`)
+        io.sockets.emit('user_send_msg_to_my_topic', msg)
+    })
+    client.on('user_request_peer_id', (msg) => {
+        console.log(`user request peer id: ${msg}`)
+        // io.sockets.emit('user_transfer_peer_id', `${msg}|${lastPeerId}`)
+    })
+})
+
 const bcrypt = require('bcrypt')
 const mimeTypes = require('mime-types')
 
@@ -15,10 +59,20 @@ const fs = require('fs')
 
 const multer  = require('multer')
 
-const { ExpressPeerServer } = require('peer')
-const peerServer = ExpressPeerServer(server, {
-    debug: true
-})
+// const { ExpressPeerServer } = require('peer')
+// const peerServer = ExpressPeerServer(server, {
+//     debug: true
+// })
+// var lastPeerId = '#'
+// var peerIndex = -1
+// peerServer.on('connection', function(client) {
+//     lastPeerId = client.id
+//     peerIndex += 1
+//     console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex}`)
+//     console.log(`server._clients: ${server._clients}`)
+//     io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}`)
+// })
+// app.use('/peerjs', peerServer)
 
 const gameStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -111,8 +165,6 @@ const msgsUpload = multer({ storage: msgsStorage })
 
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
-app.use('/peerjs', peerServer);
-
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
 
 const connectionParams = {
@@ -161,7 +213,12 @@ const UserModel = mongoose.model('UserModel', UserSchema)
 
 const NewsSchema = new mongoose.Schema({
     title: String,
-    content: String
+    content: String,
+    game: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
 }, { collection : 'mynews' })
     
 const NewsModel = mongoose.model('NewsModel', NewsSchema)
@@ -959,6 +1016,22 @@ app.get('/api/users/delete', async (req, res) => {
 
 })
 
+app.get('/api/user/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await UserModel.deleteOne({ _id: req.query.id }, (err, data) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        }
+        return res.json({ status: 'OK' })
+    })
+
+})
+
 app.get('/api/games/stats/increase', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1249,7 +1322,7 @@ app.get('/api/news/create', async (req, res) => {
 
     console.log('создаю новость')
 
-    const news = new NewsModel({ title: req.query.title, content: req.query.content })
+    const news = new NewsModel({ title: req.query.title, content: req.query.content, game: req.query.game })
     news.save(function (err) {
         if (err) {
             return res.json({ "status": "Error" })
@@ -1283,42 +1356,5 @@ fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
 })
 
 server.listen(port, () => {
-    io.on('connection', client => {
-        clients.push(client)
-        console.log('connection')
-        client.on('user_is_online', (msg) => {
-            console.log(`user is online: ${msg}`)
-            io.sockets.emit('friend_is_online', msg)
-            io.sockets.emit('friend_is_toggle_status', 'online')
-        })
-        client.on('user_is_played', (msg) => {
-            console.log(`user is played: ${msg}`)
-            io.sockets.emit('friend_is_played', msg)
-            io.sockets.emit('friend_is_toggle_status', 'played')
-        })
-        client.on('user_send_msg', (msg) => {
-            console.log(`user send msg: ${msg}`)
-            io.sockets.emit('friend_send_msg', msg)
-        })
-        client.on('user_is_toggle_status', (msg) => {
-            console.log(`user is toggle status: ${msg}`)
-            io.sockets.emit('friend_is_toggle_status', msg)
-        })
-        client.on('user_write_msg', (msg) => {
-            console.log(`user write msg: ${msg}`)
-            io.sockets.emit('friend_write_msg', msg)
-        })
-        client.on('user_send_friend_request', (msg) => {
-            console.log(`user send friend request: ${msg}`)
-            io.sockets.emit('user_receive_friend_request', msg)
-        })
-        client.on('user_is_speak', (msg) => {
-            console.log(`user is speak: ${msg}`)
-            io.sockets.emit('friend_is_speak', msg)
-        })
-        client.on('user_send_msg_to_forum', (msg) => {
-            console.log(`user send msg to forum: ${msg}`)
-            io.sockets.emit('user_send_msg_to_my_topic', msg)
-        })
-    })
+    
 })
