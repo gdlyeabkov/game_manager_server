@@ -591,8 +591,7 @@ app.get('/api/users/create', (req, res) => {
                 let encodedPassword = "#"
                 const salt = bcrypt.genSalt(saltRounds)
                 encodedPassword = bcrypt.hashSync(req.query.password, saltRounds)
-                // const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Юный геймер', friendsListSettings: 'public', gamesSettings: 'friends', equipmentSettings: 'friends', commentsSettings: 'friends'  })
-                const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Юный геймер'  })
+                const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Информация отсутствует.'  })
                 user.save(function (err) {
                     if (err) {
                         return res.json({

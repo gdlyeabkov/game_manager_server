@@ -6,11 +6,17 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { CreateGameComponent } from './create-game/create-game.component';
 import { HttpClientJsonpModule, HttpClientModule } from '@angular/common/http';
+import { CreateNewsComponent } from './create-news/create-news.component';
+import { HomeComponent } from './home/home.component';
+import { HeaderComponent } from './header/header.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    CreateGameComponent
+    CreateGameComponent,
+    CreateNewsComponent,
+    HomeComponent,
+    HeaderComponent
   ],
   imports: [
     BrowserModule,

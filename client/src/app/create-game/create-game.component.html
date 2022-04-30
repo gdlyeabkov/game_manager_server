@@ -1,3 +1,4 @@
+<app-header></app-header>
 <form
     ngNoForm
     #form
@@ -13,22 +14,6 @@
         [(ngModel)]="gameName"
         [ngModelOptions]="{standalone:true}"
     />
-    <!-- <input
-        name="gameDistributive"
-        placeholder="Ссылка на дистрибутив игры"
-        type="text"
-        class="m-2 w-25 form-control"
-        [(ngModel)]="gameUrl"
-        [ngModelOptions]="{standalone:true}"
-    />
-    <input
-        name="gameThumbnail"
-        placeholder="Ссылка на иконку игры"
-        type="text"
-        class="m-2 w-25 form-control"
-        [(ngModel)]="gameImg"
-        [ngModelOptions]="{standalone:true}"
-    /> -->
     <input
         name="gameDistributive"
         placeholder="Ссылка на дистрибутив игры"
@@ -43,12 +28,6 @@
         class="m-2 w-25 form-control"
         #gameImg
     />
-    <!-- <button
-        class="btn btn-primary"
-        (click)="createGame()"
-    >
-        Добавить игру
-    </button> -->
     <button
         class="btn btn-primary"
         type="submit"

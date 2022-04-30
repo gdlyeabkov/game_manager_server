@@ -1,0 +1,32 @@
+<app-header></app-header>
+<form
+    class="m-auto w-25 d-flex flex-column align-items-center"
+>
+    <input
+        placeholder="Заголовок новости"
+        type="text"
+        class="m-2 form-control"
+        [(ngModel)]="title"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <input
+        placeholder="Контент новости"
+        type="text"
+        class="m-2 form-control"
+        [(ngModel)]="content"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <select
+        class="m-2 form-select"
+        aria-label="Default select example"
+        #gameSelector
+    >
+        
+    </select>
+    <button
+        class="m-2 btn btn-primary"
+        (click)="addNews()"
+    >
+        Создать
+    </button>
+</form>
