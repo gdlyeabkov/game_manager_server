@@ -9,6 +9,7 @@ import { HttpClientJsonpModule, HttpClientModule } from '@angular/common/http';
 import { CreateNewsComponent } from './create-news/create-news.component';
 import { HomeComponent } from './home/home.component';
 import { HeaderComponent } from './header/header.component';
+import { CreateForumComponent } from './create-forum/create-forum.component';
 
 @NgModule({
   declarations: [
@@ -16,7 +17,8 @@ import { HeaderComponent } from './header/header.component';
     CreateGameComponent,
     CreateNewsComponent,
     HomeComponent,
-    HeaderComponent
+    HeaderComponent,
+    CreateForumComponent
   ],
   imports: [
     BrowserModule,

@@ -296,15 +296,34 @@ const GameSchema = new mongoose.Schema({
     
 const GameModel = mongoose.model('GameModel', GameSchema)
 
-app.get('/api/games/get', (req, res) => {
-    
+const GroupSchema = new mongoose.Schema({
+    name: String,
+    owner: String
+}, { collection : 'my_groups' })
+
+const GroupModel = mongoose.model('GroupModel', GroupSchema)
+
+const GroupRelationSchema = new mongoose.Schema({
+    group: String,
+    user: String
+}, { collection : 'my_group_relations' })
+
+const GroupRelationModel = mongoose.model('GroupRelationModel', GroupRelationSchema)
+
+const GroupRequestSchema = new mongoose.Schema({
+    group: String,
+    user: String
+}, { collection : 'my_group_requests' })
+
+const GroupRequestModel = mongoose.model('GroupRequestModel', GroupRequestSchema)
+
+app.get('/api/games/get', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-   
-    
+       
     let query = GameModel.find({  })
     
     query.exec((err, games) => {
@@ -312,6 +331,63 @@ app.get('/api/games/get', (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ games: games, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/groups/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GroupModel.find({  })
+    
+    query.exec((err, groups) => {
+        if (err) {
+            return res.json({ groups: [], "status": "Error" })
+        } else {
+            return res.json({ groups: groups, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/groups/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GroupRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/groups/requests/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GroupRequestModel.find({  })
+    
+    query.exec((err, requests) => {
+        if (err) {
+            return res.json({ requests: [], "status": "Error" })
+        } else {
+            return res.json({ requests: requests, status: 'OK' })
         }
     })
     
@@ -635,6 +711,117 @@ app.get('/api/friends/requests/add', (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/groups/requests/add', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const groupRequest = new GroupRequestModel({ group: req.query.id, user: req.query.user })
+    groupRequest.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/groups/relations/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await GroupRelationModel.deleteOne({ _id: req.query.request })
+
+    const groupRelation = new GroupRelationModel({ group: req.query.id, user: req.query.user })
+    groupRelation.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/groups/requests/reject', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await GroupRequestModel.deleteOne({ _id: req.query.id })
+    return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/groups/requests/delete', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await GroupRequestModel.deleteMany({  }, (err) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        }
+        return res.json({ "status": "OK" })
+
+    })
+
+})
+
+app.get('/api/groups/add', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const group = new GroupModel({ name: req.query.name, owner: req.query.id })
+    group.save(function (err, group) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            const groupId = group._id
+            const relation = new GroupRelationModel({ group: groupId, user: req.query.id })
+            relation.save(function (err) {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }
+                else {
+                    return res.json({ "status": "OK" })
+                }   
+            })
+        }
+    })
+
+})
+
+app.get('/api/groups/get', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    GroupModel.findOne({ _id: req.query.id }, (err, group) => {
+        if (err) {
+            return res.json({ group: null, status: 'Error' })
+        } else {
+            return res.json({ group: group, status: 'OK' })
         }
     })
 
