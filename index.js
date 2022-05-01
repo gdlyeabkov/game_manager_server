@@ -49,8 +49,12 @@ io.on('connection', client => {
         // io.sockets.emit('user_transfer_peer_id', `${msg}|${lastPeerId}`)
     })
     client.on('user_send_group_request', (msg) => {
-        console.log(`c: ${msg}`)
+        console.log(`user send group request: ${msg}`)
         io.sockets.emit('user_receive_group_request', msg)
+    })
+    client.on('user_send_comment', (msg) => {
+        console.log(`user send comment: ${msg}`)
+        io.sockets.emit('user_receive_comment', msg)
     })
 })
 
@@ -167,6 +171,65 @@ const msgsStorage = multer.diskStorage({
 })
 const msgsUpload = multer({ storage: msgsStorage })
 
+const manualsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const manualPath = `${pathToDir}uploads/manuals`
+        const isManualPathExists = fs.existsSync(manualPath)
+        const isManualPathNotExists = !isManualPathExists
+        if (isManualPathNotExists) {
+            fs.mkdirSync(manualPath)
+        }
+        cb(null, `uploads/manuals`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        // const manualId = req.query.id
+        const manualId = 'hash'
+        const manualPath = `${pathToDir}uploads/manuals`
+        const isManualPathExists = fs.existsSync(manualPath)
+        const isManualPathNotExists = !isManualPathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isManualPathNotExists) {
+            fs.mkdirSync(manualPath)
+            cb(null, `${manualId}${ext}`)
+        } else {
+            cb(null, `${manualId}${ext}`)
+        }
+    }
+})
+const manualsUpload = multer({ storage: manualsStorage })
+
+const illustrationsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const illustrationPath = `${pathToDir}uploads/illustrations`
+        const isIllustrationPathExists = fs.existsSync(illustrationPath)
+        const isIllustrationPathNotExists = !isIllustrationPathExists
+        if (isIllustrationPathNotExists) {
+            fs.mkdirSync(illustrationPath)
+        }
+        cb(null, `uploads/illustrations`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const illustrationId = 'hash'
+        const illustrationPath = `${pathToDir}uploads/illustrations`
+        const isIllustrationPathExists = fs.existsSync(illustrationPath)
+        const isIllustrationPathNotExists = !isIllustrationPathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isIllustrationPathNotExists) {
+            fs.mkdirSync(illustrationPath)
+            cb(null, `${illustrationId}${ext}`)
+        } else {
+            cb(null, `${illustrationId}${ext}`)
+        }
+    }
+})
+const illustrationsUpload = multer({ storage: illustrationsStorage })
+
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -214,6 +277,34 @@ const UserSchema = new mongoose.Schema({
 }, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
+
+const ManualSchema = new mongoose.Schema({
+    title: String,
+    desc: String,
+    user: String,
+    lang: String,
+    categories: String,
+    isDrm: Boolean,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'mymanuals' })
+    
+const ManualModel = mongoose.model('ManualModel', ManualSchema)
+
+const IllustrationSchema = new mongoose.Schema({
+    title: String,
+    desc: String,
+    user: String,
+    isDrm: Boolean,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'myillustrations' })
+    
+const IllustrationModel = mongoose.model('IllustrationModel', IllustrationSchema)
 
 const NewsSchema = new mongoose.Schema({
     title: String,
@@ -379,6 +470,101 @@ app.get('/api/groups/all', (req, res) => {
     
 })
 
+app.get('/api/illustrations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = IllustrationModel.find({  })
+    
+    query.exec((err, illustrations) => {
+        if (err) {
+            return res.json({ illustrations: [], "status": "Error" })
+        } else {
+            return res.json({ illustrations: illustrations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/illustrations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = IllustrationModel.find({  })
+    
+    query.exec((err, illustrations) => {
+        if (err) {
+            return res.json({ illustrations: [], "status": "Error" })
+        } else {
+            return res.json({ illustrations: illustrations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/manuals/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ManualModel.find({  })
+    
+    query.exec((err, manuals) => {
+        if (err) {
+            return res.json({ manuals: [], "status": "Error" })
+        } else {
+            return res.json({ manuals: manuals, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/manuals/get', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ManualModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, manual) => {
+        if (err) {
+            return res.json({ manual: manual, "status": "Error" })
+        } else {
+            return res.json({ manual: manual, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/illustrations/get', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = IllustrationModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, illustration) => {
+        if (err) {
+            return res.json({ illustration: illustration, "status": "Error" })
+        } else {
+            return res.json({ illustration: illustration, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/groups/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -387,6 +573,40 @@ app.get('/api/groups/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await GroupModel.deleteMany((err, groups) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/manuals/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ManualModel.deleteMany((err, manuals) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/illustrations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await IllustrationModel.deleteMany((err, illustrations) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -423,6 +643,23 @@ app.get('/api/groups/relations/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await GroupRelationModel.deleteMany((err, relations) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/groups/relations/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GroupRelationModel.deleteOne({ group: req.query.group, user: req.query.id }, (err, relations) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -965,6 +1202,68 @@ app.get('/api/msgs/add', async (req, res) => {
 
 })
 
+app.post('/api/manuals/add', manualsUpload.any(), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log(`id: ${req.query.id},title: ${req.query.title},lang: ${req.query.lang},categories: ${req.query.categories},isDrm: ${req.query.drm}`)
+
+    const manual = new ManualModel({ user: req.query.id, desc: req.query.desc, title: req.query.title, lang: req.query.lang, categories: req.query.categories, isDrm: req.query.drm })
+    manual.save(function (err, generatedManual) {
+        if (err) {
+            console.log('создаю мануал ошибка')
+            // return res.json({ "status": "Error" })
+        } else {
+            console.log('создаю мануал успешно')
+            // return res.json({ "status": "OK" })
+        }
+
+        const generatedId = generatedManual._id
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const manualPath = `${pathToDir}uploads/manuals/hash${req.query.ext}`
+        const newManualPath = `${pathToDir}uploads/manuals/${generatedId}${req.query.ext}`
+        fs.rename(manualPath, newManualPath, (err) => {
+            
+        })
+
+        return res.redirect('/')
+    })
+
+})
+
+app.post('/api/illustrations/add', illustrationsUpload.any(), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const illustration = new IllustrationModel({ user: req.query.id, desc: req.query.desc, title: req.query.title, isDrm: req.query.drm })
+    illustration.save(function (err, generatedIllustration) {
+        if (err) {
+            console.log('создаю иллюстрацию ошибка')
+        } else {
+            console.log('создаю иллюстрацию успешно')
+        }
+
+        const generatedId = generatedIllustration._id
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const illustrationPath = `${pathToDir}uploads/illustrations/hash${req.query.ext}`
+        const newIllustrationPath = `${pathToDir}uploads/illustrations/${generatedId}${req.query.ext}`
+        fs.rename(illustrationPath, newIllustrationPath, (err) => {
+            
+        })
+
+        return res.redirect('/')
+    })
+
+})
+
 app.get('/api/user/comments/add', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1146,6 +1445,76 @@ app.get('/api/game/thumbnail', (req, res) => {
                 return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
             } else {
                 return res.sendFile(`${__dirname}/uploads/games/${req.query.name}/${req.query.name}${ext}`)
+            }
+        }
+    })
+
+})
+
+app.get('/api/manual/photo', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю фото')
+
+    fs.readdir(`${__dirname}/uploads/manuals`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                console.log(`file: ${file}; mime: ${mime}`)
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/manuals/${req.query.id}${ext}`)
+            }
+        }
+    })
+
+})
+
+app.get('/api/illustration/photo', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю фото')
+
+    fs.readdir(`${__dirname}/uploads/illustrations`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                console.log(`file: ${file}; mime: ${mime}`)
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/illustrations/${req.query.id}${ext}`)
             }
         }
     })
