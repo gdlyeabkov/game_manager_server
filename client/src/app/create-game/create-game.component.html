@@ -20,6 +20,7 @@
         type="file"
         class="m-2 w-25 form-control"
         #gameUrl
+        (click)="openDistributtive($event)"
     />
     <input
         name="gameThumbnail"
@@ -27,10 +28,11 @@
         type="file"
         class="m-2 w-25 form-control"
         #gameImg
+        (click)="openThumbnail($event)"
     />
     <button
         class="btn btn-primary"
-        type="submit"
+        (click)="uploadFiles()"
     >
         Добавить игру
     </button>

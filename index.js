@@ -48,6 +48,10 @@ io.on('connection', client => {
         console.log(`user request peer id: ${msg}`)
         // io.sockets.emit('user_transfer_peer_id', `${msg}|${lastPeerId}`)
     })
+    client.on('user_send_group_request', (msg) => {
+        console.log(`c: ${msg}`)
+        io.sockets.emit('user_receive_group_request', msg)
+    })
 })
 
 const bcrypt = require('bcrypt')
@@ -253,6 +257,17 @@ const ForumMsgSchema = new mongoose.Schema({
     
 const ForumMsgModel = mongoose.model('ForumMsgModel', ForumMsgSchema)
 
+const UserCommentSchema = new mongoose.Schema({
+    user: String,
+    msg: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'myforummsgs' })
+    
+const UserCommentModel = mongoose.model('UserCommentModel', UserCommentSchema)
+
 const FriendRequestSchema = new mongoose.Schema({
     user: String,
     friend: String
@@ -298,7 +313,16 @@ const GameModel = mongoose.model('GameModel', GameSchema)
 
 const GroupSchema = new mongoose.Schema({
     name: String,
-    owner: String
+    owner: String,
+    lang: String,
+    country: String,
+    fanPage: String,
+    twitch: String,
+    youtube: String,
+    date: {
+        type: Date,
+        default: Date.now()
+    }
 }, { collection : 'my_groups' })
 
 const GroupModel = mongoose.model('GroupModel', GroupSchema)
@@ -355,6 +379,23 @@ app.get('/api/groups/all', (req, res) => {
     
 })
 
+app.get('/api/groups/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GroupModel.deleteMany((err, groups) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/groups/relations/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -369,6 +410,23 @@ app.get('/api/groups/relations/all', (req, res) => {
             return res.json({ relations: [], "status": "Error" })
         } else {
             return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/groups/relations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GroupRelationModel.deleteMany((err, relations) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
         }
     })
     
@@ -741,14 +799,20 @@ app.get('/api/groups/relations/add', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    await GroupRelationModel.deleteOne({ _id: req.query.request })
+    // await GroupRequestModel.deleteOne({ _id: req.query.request })
 
     const groupRelation = new GroupRelationModel({ group: req.query.id, user: req.query.user })
     groupRelation.save(function (err) {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
-            return res.json({ "status": "OK" })
+            GroupRequestModel.deleteOne({ _id: req.query.request }, (err) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                } else {
+                    return res.json({ "status": "OK" })
+                }
+            })
         }
     })
 
@@ -790,7 +854,7 @@ app.get('/api/groups/add', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const group = new GroupModel({ name: req.query.name, owner: req.query.id })
+    const group = new GroupModel({ name: req.query.name, owner: req.query.id, lang: req.query.lang, country: req.query.country, fanPage: req.query.fanpage, twitch: req.query.twitch, youtube: req.query.youtube })
     group.save(function (err, group) {
         if (err) {
             return res.json({ "status": "Error" })
@@ -805,6 +869,23 @@ app.get('/api/groups/add', (req, res) => {
                     return res.json({ "status": "OK" })
                 }   
             })
+        }
+    })
+
+})
+
+app.get('/api/user/comments/get', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    UserCommentModel.find({ user: req.query.id }, (err, comments) => {
+        if (err) {
+            return res.json({ comments: null, status: 'Error' })
+        } else {
+            return res.json({ comments: comments, status: 'OK' })
         }
     })
 
@@ -875,6 +956,24 @@ app.get('/api/msgs/add', async (req, res) => {
     
     const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type })
     msg.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/user/comments/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const comment = new UserCommentModel({ user: req.query.id, msg: req.query.msg })
+    comment.save(function (err) {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -1519,6 +1618,18 @@ app.get('/api/news/create', async (req, res) => {
 
 })
 
+app.get('**', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('возвращаю домашнюю страницу')
+
+    res.redirect('/')
+
+})
 
 const port = 4000
 // const port = process.env.PORT || 8080
