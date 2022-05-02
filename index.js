@@ -230,6 +230,35 @@ const illustrationsStorage = multer.diskStorage({
 })
 const illustrationsUpload = multer({ storage: illustrationsStorage })
 
+const screenShotsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const screenShotPath = `${pathToDir}uploads/screenShots`
+        const isScreenShotPathExists = fs.existsSync(screenShotPath)
+        const isScreenShotPathNotExists = !isScreenShotPathExists
+        if (isScreenShotPathNotExists) {
+            fs.mkdirSync(screenShotPath)
+        }
+        cb(null, `uploads/screenShots`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const screenShotId = 'hash'
+        const screenShotPath = `${pathToDir}uploads/screenShots`
+        const isScreenShotPathExists = fs.existsSync(screenShotPath)
+        const isScreenShotPathNotExists = !isScreenShotPathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isScreenShotPathNotExists) {
+            fs.mkdirSync(screenShotPath)
+            cb(null, `${screenShotId}${ext}`)
+        } else {
+            cb(null, `${screenShotId}${ext}`)
+        }
+    }
+})
+const screenShotsUpload = multer({ storage: screenShotsStorage })
+
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -278,6 +307,19 @@ const UserSchema = new mongoose.Schema({
     
 const UserModel = mongoose.model('UserModel', UserSchema)
 
+const ReviewSchema = new mongoose.Schema({
+    game: String,
+    user: String,
+    desc: String,
+    hours: Number,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'myreviews' })
+    
+const ReviewModel = mongoose.model('ReviewModel', ReviewSchema)
+
 const ManualSchema = new mongoose.Schema({
     title: String,
     desc: String,
@@ -305,6 +347,18 @@ const IllustrationSchema = new mongoose.Schema({
 }, { collection : 'myillustrations' })
     
 const IllustrationModel = mongoose.model('IllustrationModel', IllustrationSchema)
+
+const ScreenShotSchema = new mongoose.Schema({
+    user: String,
+    desc: String,
+    spoiler: Boolean,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'myscreenshots' })
+    
+const ScreenShotModel = mongoose.model('ScreenShotModel', ScreenShotSchema)
 
 const NewsSchema = new mongoose.Schema({
     title: String,
@@ -383,8 +437,27 @@ const MsgSchema = new mongoose.Schema({
         default: Date.now
     }
 }, { collection : 'mymsgs' })
-    
-const MsgModel = mongoose.model('MsgModel', MsgSchema)
+
+const TalkSchema = new mongoose.Schema({
+    title: String,
+    owner: String
+}, { collection : 'my_talks' })
+
+const TalkModel = mongoose.model('TalkModel', TalkSchema)
+
+const TalkRelationSchema = new mongoose.Schema({
+    talk: String,
+    user: String
+}, { collection : 'my_talk_relations' })
+
+const TalkRelationModel = mongoose.model('TalkRelationModel', TalkRelationSchema)
+
+const BlackListRelationSchema = new mongoose.Schema({
+    user: String,
+    friend: String
+}, { collection : 'my_blacklist_relations' })
+
+const BlackListRelationModel = mongoose.model('BlackListRelationModel', BlackListRelationSchema)
 
 const GameSchema = new mongoose.Schema({
     name: String,
@@ -470,6 +543,25 @@ app.get('/api/groups/all', (req, res) => {
     
 })
 
+app.get('/api/reviews/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ReviewModel.find({  })
+    
+    query.exec((err, reviews) => {
+        if (err) {
+            return res.json({ reviews: [], "status": "Error" })
+        } else {
+            return res.json({ reviews: reviews, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/illustrations/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -484,6 +576,25 @@ app.get('/api/illustrations/all', (req, res) => {
             return res.json({ illustrations: [], "status": "Error" })
         } else {
             return res.json({ illustrations: illustrations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/screenshots/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ScreenShotModel.find({  })
+    
+    query.exec((err, screenShots) => {
+        if (err) {
+            return res.json({ screenShots: [], "status": "Error" })
+        } else {
+            return res.json({ screenShots: screenShots, status: 'OK' })
         }
     })
     
@@ -538,9 +649,28 @@ app.get('/api/manuals/get', (req, res) => {
     
     query.exec((err, manual) => {
         if (err) {
-            return res.json({ manual: manual, "status": "Error" })
+            return res.json({ manual: null, "status": "Error" })
         } else {
             return res.json({ manual: manual, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/reviews/get', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ReviewModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, review) => {
+        if (err) {
+            return res.json({ review: null, "status": "Error" })
+        } else {
+            return res.json({ review: review, status: 'OK' })
         }
     })
     
@@ -557,9 +687,28 @@ app.get('/api/illustrations/get', (req, res) => {
     
     query.exec((err, illustration) => {
         if (err) {
-            return res.json({ illustration: illustration, "status": "Error" })
+            return res.json({ illustration: null, "status": "Error" })
         } else {
             return res.json({ illustration: illustration, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/screenshots/get', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ScreenShotModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, screenShot) => {
+        if (err) {
+            return res.json({ screenShot: null, "status": "Error" })
+        } else {
+            return res.json({ screenShot: screenShot, status: 'OK' })
         }
     })
     
@@ -590,6 +739,40 @@ app.get('/api/manuals/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await ManualModel.deleteMany((err, manuals) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/reviews/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ReviewModel.deleteMany((err, reviews) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/screenshots/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ScreenShotModel.deleteMany((err, screenShots) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -635,6 +818,25 @@ app.get('/api/groups/relations/all', (req, res) => {
     
 })
 
+app.get('/api/blacklist/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = BlackListRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/groups/relations/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -652,6 +854,23 @@ app.get('/api/groups/relations/delete', async (req, res) => {
     
 })
 
+app.get('/api/blacklist/relations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await BlackListRelationModel.deleteMany((err, relations) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/groups/relations/remove', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -660,6 +879,23 @@ app.get('/api/groups/relations/remove', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await GroupRelationModel.deleteOne({ group: req.query.group, user: req.query.id }, (err, relations) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/blacklist/relations/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await BlackListRelationModel.deleteOne({ user: req.query.id, friend: req.query.friend }, (err, relations) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -1055,6 +1291,24 @@ app.get('/api/groups/relations/add', async (req, res) => {
 
 })
 
+app.get('/api/blacklist/relations/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const blackListRelation = new BlackListRelationModel({ user: req.query.id, friend: req.query.friend })
+    blackListRelation.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.get('/api/groups/requests/reject', async (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1235,6 +1489,26 @@ app.post('/api/manuals/add', manualsUpload.any(), async (req, res) => {
 
 })
 
+app.get('/api/reviews/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const review = new ReviewModel({ desc: req.query.desc, game: req.query.game, hours: req.query.hours, user: req.query.id })
+    review.save(function (err, generatedReview) {
+        if (err) {
+            console.log('создаю обзор ошибка')
+            return res.json({ "status": "Error" })
+        } else {
+            console.log('создаю обзор успешно')
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.post('/api/illustrations/add', illustrationsUpload.any(), async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1256,6 +1530,36 @@ app.post('/api/illustrations/add', illustrationsUpload.any(), async (req, res) =
         const illustrationPath = `${pathToDir}uploads/illustrations/hash${req.query.ext}`
         const newIllustrationPath = `${pathToDir}uploads/illustrations/${generatedId}${req.query.ext}`
         fs.rename(illustrationPath, newIllustrationPath, (err) => {
+            
+        })
+
+        return res.redirect('/')
+    })
+
+})
+
+app.post('/api/screenshots/add', screenShotsUpload.any(), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const illustration = new ScreenShotModel({ user: req.query.id, desc: req.query.desc, isSpoiler: req.query.spoiler })
+    illustration.save(function (err, generatedScreenShot) {
+        if (err) {
+            console.log('создаю скриншот ошибка')
+        } else {
+            console.log('создаю скриншот успешно')
+        }
+
+        const generatedId = generatedScreenShot._id
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const screenShotPath = `${pathToDir}uploads/screenShots/hash${req.query.ext}`
+        console.log(`screenShotPath: ${screenShotPath}`)
+        const newScreenShotPath = `${pathToDir}uploads/screenShots/${generatedId}${req.query.ext}`
+        fs.rename(screenShotPath, newScreenShotPath, (err) => {
             
         })
 
@@ -1515,6 +1819,41 @@ app.get('/api/illustration/photo', (req, res) => {
                 return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
             } else {
                 return res.sendFile(`${__dirname}/uploads/illustrations/${req.query.id}${ext}`)
+            }
+        }
+    })
+
+})
+
+app.get('/api/screenshot/photo', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю фото')
+
+    fs.readdir(`${__dirname}/uploads/screenShots`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                console.log(`file: ${file}; mime: ${mime}`)
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/screenShots/${req.query.id}${ext}`)
             }
         }
     })
