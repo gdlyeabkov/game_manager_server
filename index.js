@@ -277,19 +277,28 @@ const experimentsStorage = multer.diskStorage({
         const isExperimentPathExists = fs.existsSync(experimentPath)
         const isExperimentPathNotExists = !isExperimentPathExists
         const fileName = file.originalname
-        const ext = mimeTypes.extension(req.query.ext)
+        const ext = mimeTypes.extension(req.query.imgext)
         if (isExperimentPathNotExists) {
             fs.mkdirSync(experimentPath)
-            if (file.originalname.endsWith('.xps'))
+            const mime = mimeTypes.lookup(file.originalname) || ''
+            console.log(`mime: ${mime}`)
+            const isWord = mime.includes('application/msword') || mime.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') || mime.includes('application/vnd.ms-word.document.macroEnabled')
+            if (isWord)
             {
-                cb(null, `hash1.doc`)
+                const ext = path.extname(file.originalname)
+                console.log(`ext: ${ext}`)
+                cb(null, `hash1${ext}`)
             } else {
                 cb(null, `${experimentId}.${ext}`)
             }
         } else {
-            if (file.originalname.endsWith('.doc'))
-            {
-                cb(null, `hash1.doc`)
+            const mime = mimeTypes.lookup(file.originalname) || ''
+            console.log(`mime: ${mime}`)
+            const isWord = mime.includes('application/msword') || mime.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') || mime.includes('application/vnd.ms-word.document.macroEnabled')
+            if (isWord) {
+                const ext = path.extname(file.originalname)
+                console.log(`ext: ${ext}`)
+                cb(null, `hash1${ext}`)
             } else {
                 cb(null, `${experimentId}.${ext}`)
             }
@@ -627,7 +636,8 @@ app.get('/api/experiment/document', (req, res) => {
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
                 console.log(`file: ${file}; mime: ${mime}`)
-                const isWord = mime.includes('application/msword')
+                // const isWord = mime.includes('application/msword')
+                const isWord = mime.includes('application/msword') || mime.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') || mime.includes('application/vnd.ms-word.document.macroEnabled')
                 if (isWord) {
                     ext = path.extname(file)
                     break
@@ -2355,7 +2365,7 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
 
-    console.log(`создаю эксперимент: ${req.query.ext}`)
+    console.log(`создаю эксперимент: ${req.query.imgext}`)
 
     const experiment = new ExperimentModel({ title: req.query.title, desc: req.query.desc })
     experiment.save(function (err, generatedExperiment) {
@@ -2366,14 +2376,40 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
         const experimentFolderPath = `${pathToDir}uploads/experiments/${generatedId}`
         fs.mkdirSync(experimentFolderPath)
         
-        let experimentPath = `${pathToDir}uploads/experiments/hash.${mimeTypes.extension(req.query.ext)}`
-        let newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(req.query.ext)}`
+        let experimentPath = `${pathToDir}uploads/experiments/hash.${mimeTypes.extension(req.query.imgext)}`
+        let newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(req.query.imgext)}`
         fs.rename(experimentPath, newExperimentPath, (err) => {
-            experimentPath = `${pathToDir}uploads/experiments/hash1.doc`
-            newExperimentPath = `${experimentFolderPath}/${generatedId}.doc`
-            fs.rename(experimentPath, newExperimentPath, (err) => {
+            console.log(`req.query.imgext: ${req.query.imgext} req.query.docext: ${req.query.docext}`)
+            // experimentPath = `${pathToDir}uploads/experiments/hash1.doc`
+            experimentPath = `${pathToDir}uploads/experiments/hash1.${mimeTypes.extension(req.query.docext)}`
+          
+            fs.readdir(`${pathToDir}uploads/experiments`, async (err, data) => {
+                if (err) {
+                    
+                } else {
+                    for (let file of data) {
+                        const mime = mimeTypes.lookup(file) || ''
+                        const isWord = mime.includes('application/msword') || mime.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') || mime.includes('application/vnd.ms-word.document.macroEnabled')
+                        console.log(`mime isword: ${mime} isword: ${isWord}`)
+                        if (isWord) {
+                            
+                            experimentPath = `${pathToDir}uploads/experiments/hash1.${mimeTypes.extension(mime)}`
+
+                            newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(mime)}`
+                            break
+                        }
+                    }
+                    await fs.rename(experimentPath, newExperimentPath, (err) => {
                 
-            })  
+                    })
+                }
+            })
+
+            // newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(req.query.docext)}`
+            // fs.rename(experimentPath, newExperimentPath, (err) => {
+                
+            // })
+
         })
     })
 

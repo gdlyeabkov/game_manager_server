@@ -10,7 +10,8 @@ export class CreateExperimentComponent implements OnInit {
   title:string = ''
   desc:string = ''
   filesList:any = []
-  fileType = ''
+  imgFileType = ''
+  docFileType = ''
   @ViewChild('form') form: ElementRef<HTMLFormElement>|null = null;
   @ViewChild('photo') photo:ElementRef<HTMLInputElement>|null = null
   @ViewChild('document') document:ElementRef<HTMLInputElement>|null = null
@@ -39,7 +40,7 @@ export class CreateExperimentComponent implements OnInit {
       for(let file of files){
         const filesListItem = await file.getFile()
         this.filesList.push(filesListItem)
-        this.fileType = filesListItem.type
+        this.imgFileType = filesListItem.type
       }
       this.photo!.nativeElement.files = this.FileListItems(
         this.filesList
@@ -54,7 +55,7 @@ export class CreateExperimentComponent implements OnInit {
         {
           description: 'Поддерживаемые форматы',
           accept: {
-            'application/msword': ['.doc'],
+            'application/msword': ['.doc', '.docx', '.docm'],
           },
         },
       ],
@@ -65,6 +66,7 @@ export class CreateExperimentComponent implements OnInit {
       for(let file of files){
         const filesListItem = await file.getFile()
         this.filesList.push(filesListItem)
+        this.docFileType = filesListItem.type
       }
       this.document!.nativeElement.files = this.FileListItems(
         this.filesList
