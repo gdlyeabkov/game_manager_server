@@ -54,7 +54,7 @@ export class CreateExperimentComponent implements OnInit {
         {
           description: 'Поддерживаемые форматы',
           accept: {
-            'application/vnd.ms-xpsdocument': ['.xps'],
+            'application/msword': ['.doc'],
           },
         },
       ],

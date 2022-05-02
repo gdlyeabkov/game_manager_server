@@ -277,20 +277,19 @@ const experimentsStorage = multer.diskStorage({
         const isExperimentPathExists = fs.existsSync(experimentPath)
         const isExperimentPathNotExists = !isExperimentPathExists
         const fileName = file.originalname
-        // const ext = path.extname(fileName)
         const ext = mimeTypes.extension(req.query.ext)
         if (isExperimentPathNotExists) {
             fs.mkdirSync(experimentPath)
-            // cb(null, `${experimentId}${ext}`)
-            if (file.originalname.endsWith('.xps')) {
-                cb(null, `hash1.xps`)
+            if (file.originalname.endsWith('.xps'))
+            {
+                cb(null, `hash1.doc`)
             } else {
                 cb(null, `${experimentId}.${ext}`)
             }
         } else {
-            // cb(null, `${experimentId}${ext}`)
-            if (file.originalname.endsWith('.xps')) {
-                cb(null, `hash1.xps`)
+            if (file.originalname.endsWith('.doc'))
+            {
+                cb(null, `hash1.doc`)
             } else {
                 cb(null, `${experimentId}.${ext}`)
             }
@@ -620,16 +619,16 @@ app.get('/api/experiment/document', (req, res) => {
 
     console.log('отправляю документ')
 
-    fs.readdir(`${__dirname}/uploads/experiments`, (err, data) => {
+        fs.readdir(`${__dirname}/uploads/experiments/${req.query.id}`, (err, data) => {
         if (err) {
-            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            return res.sendFile(`${__dirname}/uploads/defaults/default_experiment_document.doc`)
         } else {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
                 console.log(`file: ${file}; mime: ${mime}`)
-                const isXps = mime.includes('application/vnd.ms-xpsdocument') || mime.includes('application/oxps')
-                if (isXps) {
+                const isWord = mime.includes('application/msword')
+                if (isWord) {
                     ext = path.extname(file)
                     break
                 }
@@ -637,7 +636,7 @@ app.get('/api/experiment/document', (req, res) => {
             const extLength = ext.length
             const isNotFound = extLength <= 0
             if (isNotFound) {
-                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+                return res.sendFile(`${__dirname}/uploads/defaults/default_experiment_document.doc`)
             } else {
                 return res.sendFile(`${__dirname}/uploads/experiments/${req.query.id}/${req.query.id}${ext}`)
             }
@@ -1625,14 +1624,7 @@ app.post('/api/manuals/add', manualsUpload.any(), async (req, res) => {
 
     const manual = new ManualModel({ user: req.query.id, desc: req.query.desc, title: req.query.title, lang: req.query.lang, categories: req.query.categories, isDrm: req.query.drm })
     manual.save(function (err, generatedManual) {
-        if (err) {
-            console.log('создаю мануал ошибка')
-            // return res.json({ "status": "Error" })
-        } else {
-            console.log('создаю мануал успешно')
-            // return res.json({ "status": "OK" })
-        }
-
+        
         const generatedId = generatedManual._id
         const pathSeparator = path.sep
         const pathToDir = `${__dirname}${pathSeparator}`
@@ -1868,7 +1860,6 @@ app.get('/api/user/avatar', (req, res) => {
             const extLength = ext.length
             const isNotFound = extLength <= 0
             if (isNotFound) {
-                // return 'https://cdn2.iconfinder.com/data/icons/ios-7-icons/50/user_male-128.png'
                 return res.sendFile(`${__dirname}/uploads/defaults/default_avatar.png`)
             } else {
                 return res.sendFile(`${__dirname}/uploads/users/${req.query.id}/${req.query.id}${ext}`)
@@ -2376,13 +2367,10 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
         fs.mkdirSync(experimentFolderPath)
         
         let experimentPath = `${pathToDir}uploads/experiments/hash.${mimeTypes.extension(req.query.ext)}`
-        // const newExperimentPath = `${pathToDir}uploads/experiments/${generatedId}.${mimeTypes.extension(req.query.ext)}`
         let newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(req.query.ext)}`
-        // const experimentPath = `${pathToDir}uploads/experiments/hash${'.png'}`
-        // const newExperimentPath = `${pathToDir}uploads/experiments/${generatedId}${'.png'}`
         fs.rename(experimentPath, newExperimentPath, (err) => {
-            experimentPath = `${pathToDir}uploads/experiments/hash1.xps`
-            newExperimentPath = `${experimentFolderPath}/${generatedId}.xps`
+            experimentPath = `${pathToDir}uploads/experiments/hash1.doc`
+            newExperimentPath = `${experimentFolderPath}/${generatedId}.doc`
             fs.rename(experimentPath, newExperimentPath, (err) => {
                 
             })  
