@@ -259,6 +259,46 @@ const screenShotsStorage = multer.diskStorage({
 })
 const screenShotsUpload = multer({ storage: screenShotsStorage })
 
+const experimentsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const experimentPath = `${pathToDir}uploads/experiments`
+        const isExperimentPathExists = fs.existsSync(experimentPath)
+        const isExperimentPathNotExists = !isExperimentPathExists
+        if (isExperimentPathNotExists) {
+            fs.mkdirSync(experimentPath)
+        }
+        cb(null, `uploads/experiments`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const experimentId = 'hash'
+        const experimentPath = `${pathToDir}uploads/experiments`
+        const isExperimentPathExists = fs.existsSync(experimentPath)
+        const isExperimentPathNotExists = !isExperimentPathExists
+        const fileName = file.originalname
+        // const ext = path.extname(fileName)
+        const ext = mimeTypes.extension(req.query.ext)
+        if (isExperimentPathNotExists) {
+            fs.mkdirSync(experimentPath)
+            // cb(null, `${experimentId}${ext}`)
+            if (file.originalname.endsWith('.xps')) {
+                cb(null, `hash1.xps`)
+            } else {
+                cb(null, `${experimentId}.${ext}`)
+            }
+        } else {
+            // cb(null, `${experimentId}${ext}`)
+            if (file.originalname.endsWith('.xps')) {
+                cb(null, `hash1.xps`)
+            } else {
+                cb(null, `${experimentId}.${ext}`)
+            }
+        }
+    }
+})
+const experimentsUpload = multer({ storage: experimentsStorage })
+
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -306,6 +346,17 @@ const UserSchema = new mongoose.Schema({
 }, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
+
+const ExperimentSchema = new mongoose.Schema({
+    title: String,
+    desc: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'myexperiments' })
+    
+const ExperimentModel = mongoose.model('ExperimentModel', ExperimentSchema)
 
 const ReviewSchema = new mongoose.Schema({
     game: String,
@@ -524,6 +575,77 @@ app.get('/api/games/get', (req, res) => {
     
 })
 
+app.get('/api/experiment/photo', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю фото')
+
+    fs.readdir(`${__dirname}/uploads/experiments/${req.query.id}`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                console.log(`file: ${file}; mime: ${mime}`)
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/experiments/${req.query.id}/${req.query.id}${ext}`)
+            }
+        }
+    })
+
+})
+
+app.get('/api/experiment/document', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    res.setHeader('Content-disposition', 'attachment; filename='+ `${req.query.id}.xps`);
+
+    console.log('отправляю документ')
+
+    fs.readdir(`${__dirname}/uploads/experiments`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                console.log(`file: ${file}; mime: ${mime}`)
+                const isXps = mime.includes('application/vnd.ms-xpsdocument') || mime.includes('application/oxps')
+                if (isXps) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/experiments/${req.query.id}/${req.query.id}${ext}`)
+            }
+        }
+    })
+
+})
+
 app.get('/api/groups/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -638,6 +760,25 @@ app.get('/api/manuals/all', (req, res) => {
     
 })
 
+app.get('/api/experiments/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ExperimentModel.find({  })
+    
+    query.exec((err, experiments) => {
+        if (err) {
+            return res.json({ experiments: [], "status": "Error" })
+        } else {
+            return res.json({ experiments: experiments, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/manuals/get', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -739,6 +880,23 @@ app.get('/api/manuals/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await ManualModel.deleteMany((err, manuals) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/experiments/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ExperimentModel.deleteMany((err, experiments) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2197,6 +2355,46 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
     })
     return await res.redirect('/')
 
+})
+
+app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experimentPhoto', maxCount: 1}, {name: 'experimentDocument', maxCount: 1}]), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log(`создаю эксперимент: ${req.query.ext}`)
+
+    const experiment = new ExperimentModel({ title: req.query.title, desc: req.query.desc })
+    experiment.save(function (err, generatedExperiment) {
+        const generatedId = generatedExperiment._id
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        
+        const experimentFolderPath = `${pathToDir}uploads/experiments/${generatedId}`
+        fs.mkdirSync(experimentFolderPath)
+        
+        let experimentPath = `${pathToDir}uploads/experiments/hash.${mimeTypes.extension(req.query.ext)}`
+        // const newExperimentPath = `${pathToDir}uploads/experiments/${generatedId}.${mimeTypes.extension(req.query.ext)}`
+        let newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(req.query.ext)}`
+        // const experimentPath = `${pathToDir}uploads/experiments/hash${'.png'}`
+        // const newExperimentPath = `${pathToDir}uploads/experiments/${generatedId}${'.png'}`
+        fs.rename(experimentPath, newExperimentPath, (err) => {
+            experimentPath = `${pathToDir}uploads/experiments/hash1.xps`
+            newExperimentPath = `${experimentFolderPath}/${generatedId}.xps`
+            fs.rename(experimentPath, newExperimentPath, (err) => {
+                
+            })  
+        })
+    })
+
+    return await res.redirect('/')
+
+})
+
+app.get('/debug', (req, res) => {
+    console.log(`mime: ${mimeTypes.extension('image/jpeg')}`)
 })
 
 app.get('/api/forums/create', async (req, res) => {

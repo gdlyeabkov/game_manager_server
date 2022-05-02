@@ -1,0 +1,49 @@
+<app-header></app-header>
+<form
+    ngNoForm
+    #form
+    method="POST"
+    action="{{'api/experiments/create?title=' + title + '&desc=' + desc + '&ext=' + fileType}}"
+    class="d-flex justify-content flex-column align-items-center"
+    enctype="multipart/form-data"
+>
+    <input
+        placeholder="Название эксперимента"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="title"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <input
+        placeholder="Описание эксперимента"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="desc"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <input
+        name="experimentPhoto"
+        placeholder="Фото экперимента"
+        type="file"
+        class="m-2 w-25 form-control"
+        #photo
+        (click)="openPhoto($event)"
+    />
+    <input
+        name="experimentDocument"
+        placeholder="Документ экперимента"
+        type="file"
+        class="m-2 w-25 form-control"
+        #document
+        (click)="openDocument($event)"
+    />
+    <button
+        class="btn btn-primary"
+        (click)="uploadFiles()"
+    >
+        Добавить эксперимент
+    </button>
+</form>
+<style>
+
+</style>

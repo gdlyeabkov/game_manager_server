@@ -4,6 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import {  CreateGameComponent } from './create-game/create-game.component'
 import {  CreateNewsComponent } from './create-news/create-news.component'
 import {  CreateForumComponent } from './create-forum/create-forum.component'
+import {  CreateExperimentComponent } from './create-experiment/create-experiment.component'
 import {  HomeComponent } from './home/home.component'
 
 const routes: Routes = [
@@ -18,6 +19,10 @@ const routes: Routes = [
   {
     'path': 'forums/add',
     'component': CreateForumComponent
+  },
+  {
+    'path': 'experiments/add',
+    'component': CreateExperimentComponent
   },
   {
     'path': '**',

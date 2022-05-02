@@ -10,6 +10,7 @@ import { CreateNewsComponent } from './create-news/create-news.component';
 import { HomeComponent } from './home/home.component';
 import { HeaderComponent } from './header/header.component';
 import { CreateForumComponent } from './create-forum/create-forum.component';
+import { CreateExperimentComponent } from './create-experiment/create-experiment.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { CreateForumComponent } from './create-forum/create-forum.component';
     CreateNewsComponent,
     HomeComponent,
     HeaderComponent,
-    CreateForumComponent
+    CreateForumComponent,
+    CreateExperimentComponent
   ],
   imports: [
     BrowserModule,

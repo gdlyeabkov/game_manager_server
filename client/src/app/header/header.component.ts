@@ -25,4 +25,8 @@ export class HeaderComponent implements OnInit {
     this.route.navigate(['forums/add'])
   }
 
+  addExperiment () {
+    this.route.navigate(['experiments/add'])
+  }
+
 }
