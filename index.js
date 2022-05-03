@@ -6,6 +6,7 @@ const app = express()
 const server = require('http').createServer(app)
 const { Server } = require("socket.io");
 const io = new Server(server)
+const nodemailer = require("nodemailer")
 
 io.on('connection', client => {
     clients.push(client)
@@ -66,6 +67,14 @@ const saltRounds = 10
 const fs = require('fs')
 
 const multer  = require('multer')
+
+var transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: 'gdlyeabkov@gmail.com',
+        pass: 'reversepassword'
+    }
+})
 
 // const { ExpressPeerServer } = require('peer')
 // const peerServer = ExpressPeerServer(server, {
@@ -2080,6 +2089,7 @@ app.post('/api/user/edit', usersUpload.any(), (req, res) => {
         }
         return res.json({ status: 'OK' })
     })
+
 })
 
 app.get('/api/user/status/set', (req, res) => {
@@ -2605,6 +2615,98 @@ app.get('/api/news/create', async (req, res) => {
         }
     })
 
+})
+
+app.get('/api/users/email/set', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    UserModel.updateOne({ _id: req.query.id },
+    {
+        login: req.query.email,
+    }, (err, user) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+    
+})
+
+app.get('/api/users/email/set/accept', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let mailOptions = {
+        from: `"${'gdlyeabkov'}" <${"gdlyeabkov"}>`,
+        to: `${req.query.to}`,
+        subject: `Подтверждение аккаунта Office ware game manager`,
+        html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены email вашего аккаунта Office ware game manager:</p>`,
+    }
+    transporter.sendMail(mailOptions, function (err, info) {
+        // if (err) {
+        //     return res.json({ status: 'Error' })
+        // } else {
+        //     return res.json({ status: 'OK' })
+        // }
+    })
+
+    console.log(`отправил письмо на ${req.query.to} для обновления почты код: ${req.query.code}`)
+
+    return res.json({ status: 'OK' })
+    
+})
+
+app.get('/api/users/password/set', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let encodedPassword = "#"
+    const salt = bcrypt.genSalt(saltRounds)
+    encodedPassword = bcrypt.hashSync(req.query.password, saltRounds)
+
+    UserModel.updateOne({ _id: req.query.id },
+    {
+        password: encodedPassword,
+    }, (err, user) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+    
+})
+
+app.get('/api/users/password/set/accept', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let mailOptions = {
+        from: `"${'gdlyeabkov'}" <${"gdlyeabkov"}>`,
+        to: `${req.query.to}`,
+        subject: `Подтверждение аккаунта Office ware game manager`,
+        html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены email вашего аккаунта Office ware game manager:</p>`,
+    }
+    transporter.sendMail(mailOptions, function (err, info) {
+        
+    })
+
+    console.log(`отправил письмо на ${req.query.to} для обновления пароля код: ${req.query.code}`)
+
+    return res.json({ status: 'OK' })
+    
 })
 
 app.get('**', async (req, res) => {
