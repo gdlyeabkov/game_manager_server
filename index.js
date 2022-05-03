@@ -350,6 +350,10 @@ const UserSchema = new mongoose.Schema({
     commentsSettings: {
         type: String,
         default: 'friends'
+    },
+    points: {
+        type: Number,
+        default: 0
     }
 }, { collection : 'mygamers' })
     
@@ -522,11 +526,16 @@ const GameSchema = new mongoose.Schema({
     name: String,
     url: String,
     image: String,
+    platform: String,
     users: {
         type: Number,
         default: 0
     },
     maxUsers: {
+        type: Number,
+        default: 0
+    },
+    likes: {
         type: Number,
         default: 0
     }
@@ -2244,6 +2253,56 @@ app.get('/api/games/stats/decrease', async (req, res) => {
 
 })
 
+app.get('/api/games/likes/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    GameModel.findOne({'_id': req.query.id }, function(err, game) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            GameModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "likes": 1 }
+            }, (err, game) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/users/points/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    UserModel.findOne({'_id': req.query.id }, function(err, user) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            UserModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "points": 1 }
+            }, (err, user) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
 app.get('/api/users/stats/increase', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2350,7 +2409,7 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
     console.log('создаю игру')
 
-    const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image })
+    const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image, platform: req.query.platform })
     game.save(function (err) {
 
     })

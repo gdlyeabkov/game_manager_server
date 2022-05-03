@@ -11,11 +11,12 @@ export class CreateGameComponent implements OnInit {
 
   gameName:string = ''
   filesList:any = []
+  platform:string = 'Любая'
 
   @ViewChild('form') form: ElementRef<HTMLFormElement>|null = null;
   @ViewChild('gameUrl') gameUrl:ElementRef<HTMLInputElement>|null = null
   @ViewChild('gameImg') gameImg:ElementRef<HTMLInputElement>|null = null
-
+  @ViewChild('platformSelector') platformSelector:ElementRef<HTMLSelectElement>|null = null
 
   constructor(private http: HttpClient) { }
 
@@ -89,6 +90,15 @@ export class CreateGameComponent implements OnInit {
       b.items.add(files[i])
     }
     return b.files
+  }
+
+  onChangePlatform () {
+    const platformBox = this.platformSelector!.nativeElement
+    const selectedPlatformIndex = platformBox.selectedIndex
+    const platformBoxItems = platformBox.options
+    const selectedPlatformItem = platformBoxItems[selectedPlatformIndex]
+    const selectedPlatform = selectedPlatformItem.value
+    this.platform = selectedPlatform
   }
 
 }

@@ -3,7 +3,7 @@
     ngNoForm
     #form
     method="POST"
-    action="{{'api/games/create?name=' + gameName + '&url=' + gameUrl + '&image=' + gameImg}}"
+    action="{{'api/games/create?name=' + gameName + '&url=' + gameUrl + '&image=' + gameImg + '&platform=' + platform}}"
     class="d-flex justify-content flex-column align-items-center"
     enctype="multipart/form-data"
 >
@@ -30,6 +30,33 @@
         #gameImg
         (click)="openThumbnail($event)"
     />
+    <select
+        class="m-2 form-select w-25"
+        aria-label="Default select example"
+        #platformSelector
+        (change)="onChangePlatform()"
+    >
+        <option
+            value="Любая"
+        >
+            Любая
+        </option>
+        <option
+            value="Windows"
+        >
+            Windows
+        </option>
+        <option
+            value="Linux"
+        >
+            Linux
+        </option>
+        <option
+            value="macOS"
+        >
+            macOS
+        </option>
+    </select>
     <button
         class="btn btn-primary"
         (click)="uploadFiles()"
