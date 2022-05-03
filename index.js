@@ -2647,7 +2647,7 @@ app.get('/api/users/email/set/accept', (req, res) => {
         from: `"${'gdlyeabkov'}" <${"gdlyeabkov"}>`,
         to: `${req.query.to}`,
         subject: `Подтверждение аккаунта Office ware game manager`,
-        html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены email вашего аккаунта Office ware game manager:</p>`,
+        html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены E-mail вашего аккаунта Office ware game manager</p>`,
     }
     transporter.sendMail(mailOptions, function (err, info) {
         // if (err) {
@@ -2697,7 +2697,7 @@ app.get('/api/users/password/set/accept', (req, res) => {
         from: `"${'gdlyeabkov'}" <${"gdlyeabkov"}>`,
         to: `${req.query.to}`,
         subject: `Подтверждение аккаунта Office ware game manager`,
-        html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены email вашего аккаунта Office ware game manager:</p>`,
+        html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены пароля вашего аккаунта Office ware game manager</p>`,
     }
     transporter.sendMail(mailOptions, function (err, info) {
         
