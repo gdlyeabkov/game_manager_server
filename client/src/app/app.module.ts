@@ -11,6 +11,7 @@ import { HomeComponent } from './home/home.component';
 import { HeaderComponent } from './header/header.component';
 import { CreateForumComponent } from './create-forum/create-forum.component';
 import { CreateExperimentComponent } from './create-experiment/create-experiment.component';
+import { CreateIconComponent } from './create-icon/create-icon.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { CreateExperimentComponent } from './create-experiment/create-experiment
     HomeComponent,
     HeaderComponent,
     CreateForumComponent,
-    CreateExperimentComponent
+    CreateExperimentComponent,
+    CreateIconComponent
   ],
   imports: [
     BrowserModule,

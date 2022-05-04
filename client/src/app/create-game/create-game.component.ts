@@ -12,11 +12,14 @@ export class CreateGameComponent implements OnInit {
   gameName:string = ''
   filesList:any = []
   platform:string = 'Любая'
+  price:number = 99
+  isPriceDisabled:boolean = true
 
   @ViewChild('form') form: ElementRef<HTMLFormElement>|null = null;
   @ViewChild('gameUrl') gameUrl:ElementRef<HTMLInputElement>|null = null
   @ViewChild('gameImg') gameImg:ElementRef<HTMLInputElement>|null = null
   @ViewChild('platformSelector') platformSelector:ElementRef<HTMLSelectElement>|null = null
+  @ViewChild('priceRef') priceRef:ElementRef<HTMLInputElement>|null = null
 
   constructor(private http: HttpClient) { }
 
@@ -99,6 +102,26 @@ export class CreateGameComponent implements OnInit {
     const selectedPlatformItem = platformBoxItems[selectedPlatformIndex]
     const selectedPlatform = selectedPlatformItem.value
     this.platform = selectedPlatform
+  }
+
+  disablePriceField () {
+    this.isPriceDisabled = true
+  }
+
+  enablePriceField () {
+    this.isPriceDisabled = false
+  }
+
+  getDisabledPrice () {
+    return this.isPriceDisabled
+  }
+
+  getPrice () {
+    let gamePrice = this.price
+    if (this.isPriceDisabled) {
+      gamePrice = 0
+    }
+    return gamePrice
   }
 
 }

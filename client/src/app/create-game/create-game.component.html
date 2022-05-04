@@ -3,7 +3,7 @@
     ngNoForm
     #form
     method="POST"
-    action="{{'api/games/create?name=' + gameName + '&url=' + gameUrl + '&image=' + gameImg + '&platform=' + platform}}"
+    action="{{'api/games/create?name=' + gameName + '&url=' + gameUrl + '&image=' + gameImg + '&platform=' + platform + '&price=' + getPrice()}}"
     class="d-flex justify-content flex-column align-items-center"
     enctype="multipart/form-data"
 >
@@ -57,6 +57,51 @@
             macOS
         </option>
     </select>
+    <div
+        class="form-check m-3"
+    >
+        <input
+            checked
+            name="price"
+            id="free"
+            type="radio"
+            class="form-check-input"
+            (change)="disablePriceField()"
+        />
+        <label
+            class="form-check-label"
+            for="free"
+        >
+            Бесплатная
+        </label>
+    </div>
+    <div
+        class="form-check m-3"
+    >
+        <input
+            name="price"
+            id="pay"
+            type="radio"
+            class="form-check-input"
+            (change)="enablePriceField()"
+        />
+        <label
+            class="form-check-label"
+            for="pay"
+        >
+            Платная
+        </label>
+    </div>
+    <input
+        required
+        min="99"
+        [disabled]="getDisabledPrice()"    
+        placeholder="Цена игры"
+        type="number"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="price"
+        [ngModelOptions]="{standalone:true}"
+    />
     <button
         class="btn btn-primary"
         (click)="uploadFiles()"

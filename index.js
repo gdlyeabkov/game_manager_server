@@ -354,13 +354,13 @@ const iconsStorage = multer.diskStorage({
         const iconPath = `${pathToDir}uploads/icons`
         const isIconPathExists = fs.existsSync(iconPath)
         const isIconPathNotExists = !isIconPathExists
-        const ext = req.query.ext
+        const ext = mimeTypes.extension(req.query.ext)
         if (isIconPathNotExists) {
             fs.mkdirSync(iconPath)
-            cb(null, `${experimentId}${ext}`)
+            cb(null, `${iconId}${ext}`)
         } else {
             console.log(`ext: ${ext}`)
-            cb(null, `${experimentId}${ext}`)
+            cb(null, `${iconId}.${ext}`)
         }
     }
 })
@@ -583,7 +583,8 @@ const TalkRelationSchema = new mongoose.Schema({
 }, { collection : 'my_talk_relations' })
 
 const IconSchema = new mongoose.Schema({
-    title: String
+    title: String,
+    desc: String
 }, { collection : 'my_icons' })
 
 const IconModel = mongoose.model('IconModel', IconSchema)
@@ -607,6 +608,7 @@ const GameSchema = new mongoose.Schema({
     url: String,
     image: String,
     platform: String,
+    price: Number,
     users: {
         type: Number,
         default: 0
@@ -858,6 +860,25 @@ app.get('/api/manuals/all', (req, res) => {
     
 })
 
+app.get('/api/icons/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = IconModel.find({  })
+    
+    query.exec((err, icons) => {
+        if (err) {
+            return res.json({ icons: [], "status": "Error" })
+        } else {
+            return res.json({ icons: icons, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/experiments/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -978,6 +999,40 @@ app.get('/api/manuals/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await ManualModel.deleteMany((err, manuals) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/icons/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await IconModel.deleteMany((err, icons) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/icons/relations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await IconRelationModel.deleteMany((err, relations) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2552,7 +2607,7 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
     console.log('создаю игру')
 
-    const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image, platform: req.query.platform })
+    const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image, platform: req.query.platform, price: req.query.price })
     game.save(function (err) {
 
     })
@@ -2569,10 +2624,18 @@ app.post('/api/icons/create', iconUpload.fields([{name: 'icon', maxCount: 1}]), 
 
     console.log('создаю значок')
 
-    const icon = new IconModel({ title: req.query.title })
-    icon.save(function (err) {
-
+    const icon = new IconModel({ title: req.query.title, desc: req.query.desc })
+    icon.save(function (err, generatedIcon) {
+        const generatedId = generatedIcon._id
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const manualPath = `${pathToDir}uploads/icons/hash.${mimeTypes.extension(req.query.ext)}`
+        const newManualPath = `${pathToDir}uploads/icons/${generatedId}${mimeTypes.extension(req.query.ext)}`
+        fs.rename(manualPath, newManualPath, (err) => {
+            
+        })
     })
+    
     return await res.redirect('/')
 
 })

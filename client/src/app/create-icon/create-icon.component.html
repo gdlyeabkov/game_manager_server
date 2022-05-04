@@ -1,0 +1,38 @@
+<app-header></app-header>
+<form
+    #form
+    ngNoForm
+    method="POST"
+    action="{{'/api/icons/create?title=' + title + '&desc=' + desc + '&ext=' + ext}}"
+    class="d-flex justify-content flex-column align-items-center"
+    enctype="multipart/form-data"
+>
+    <input
+        placeholder="Название значка"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="title"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <textarea
+        placeholder="Описание значка"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="desc"
+        [ngModelOptions]="{standalone:true}"
+    ></textarea>
+    <input
+        name="icon"
+        placeholder="Фото значка"
+        type="file"
+        class="m-2 w-25 form-control"
+        #icon
+        (click)="openPhoto($event)"
+    />
+    <button
+        class="btn btn-primary"
+        (click)="uploadFiles()"
+    >
+        Добавить значок
+    </button>
+</form>

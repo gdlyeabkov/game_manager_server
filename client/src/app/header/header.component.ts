@@ -29,4 +29,8 @@ export class HeaderComponent implements OnInit {
     this.route.navigate(['experiments/add'])
   }
 
+  addIcon() {
+    this.route.navigate(['icons/add'])
+  }
+
 }
