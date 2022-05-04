@@ -337,6 +337,35 @@ const experimentsStorage = multer.diskStorage({
 })
 const experimentsUpload = multer({ storage: experimentsStorage })
 
+const iconsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const iconPath = `${pathToDir}uploads/icons`
+        const isIconPathExists = fs.existsSync(iconPath)
+        const isIconPathNotExists = !isIconPathExists
+        if (isIconPathNotExists) {
+            fs.mkdirSync(iconPath)
+        }
+        cb(null, `uploads/icons`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const iconId = 'hash'
+        const iconPath = `${pathToDir}uploads/icons`
+        const isIconPathExists = fs.existsSync(iconPath)
+        const isIconPathNotExists = !isIconPathExists
+        const ext = req.query.ext
+        if (isIconPathNotExists) {
+            fs.mkdirSync(iconPath)
+            cb(null, `${experimentId}${ext}`)
+        } else {
+            console.log(`ext: ${ext}`)
+            cb(null, `${experimentId}${ext}`)
+        }
+    }
+})
+const iconUpload = multer({ storage: iconsStorage })
+
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -384,6 +413,14 @@ const UserSchema = new mongoose.Schema({
     points: {
         type: Number,
         default: 0
+    },
+    amount: {
+        type: Number,
+        default: 0
+    },
+    phone: {
+        type: String,
+        default: ''
     }
 }, { collection : 'mygamers' })
     
@@ -545,7 +582,18 @@ const TalkRelationSchema = new mongoose.Schema({
     user: String
 }, { collection : 'my_talk_relations' })
 
-const TalkRelationModel = mongoose.model('TalkRelationModel', TalkRelationSchema)
+const IconSchema = new mongoose.Schema({
+    title: String
+}, { collection : 'my_icons' })
+
+const IconModel = mongoose.model('IconModel', IconSchema)
+
+const IconRelationSchema = new mongoose.Schema({
+    icon: String,
+    user: String
+}, { collection : 'my_icon_relations' })
+
+const IconRelationModel = mongoose.model('IconRelationModel', IconRelationSchema)
 
 const BlackListRelationSchema = new mongoose.Schema({
     user: String,
@@ -1045,6 +1093,25 @@ app.get('/api/blacklist/relations/all', (req, res) => {
     
 })
 
+app.get('/api/icons/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = IconRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/groups/relations/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1494,6 +1561,24 @@ app.get('/api/groups/relations/add', async (req, res) => {
                     return res.json({ "status": "OK" })
                 }
             })
+        }
+    })
+
+})
+
+app.get('/api/icons/relations/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const iconRelation = new IconRelationModel({ icon: req.query.id, user: req.query.user })
+    iconRelation.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
         }
     })
 
@@ -2260,6 +2345,31 @@ app.get('/api/games/stats/increase', async (req, res) => {
 
 })
 
+app.get('/api/users/amount/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = UserModel.findOne({'_id': req.query.id }, function(err, user) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            UserModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "amount": req.query.amount }
+            }, (err, user) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
 app.get('/api/games/stats/decrease', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2444,6 +2554,23 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
     const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image, platform: req.query.platform })
     game.save(function (err) {
+
+    })
+    return await res.redirect('/')
+
+})
+
+app.post('/api/icons/create', iconUpload.fields([{name: 'icon', maxCount: 1}]), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю значок')
+
+    const icon = new IconModel({ title: req.query.title })
+    icon.save(function (err) {
 
     })
     return await res.redirect('/')
@@ -2650,6 +2777,25 @@ app.get('/api/users/email/set', (req, res) => {
     UserModel.updateOne({ _id: req.query.id },
     {
         login: req.query.email,
+    }, (err, user) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+    
+})
+
+app.get('/api/users/phone/set', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    UserModel.updateOne({ _id: req.query.id },
+    {
+        phone: req.query.phone,
     }, (err, user) => {
         if (err) {
             return res.json({ status: 'Error' })        
