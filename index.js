@@ -3,10 +3,23 @@ const express = require('express')
 const path = require('path')
 const serveStatic = require('serve-static')
 const app = express()
-const server = require('http').createServer(app)
-// const server = require('http').Server(app)
+
+// const server = require('http').createServer(app)
+const server = require('http').Server(app)
+
 const { Server } = require("socket.io");
-const io = new Server(server)
+
+// const io = new Server(server)
+const io = require("socket.io")(server, {
+    serveClient: false,
+    // below are engine.IO options
+    origins: '*:*',
+    transports: ['polling'],
+    pingInterval: 10000,
+    pingTimeout: 5000,
+    cookie: false
+})
+
 const nodemailer = require("nodemailer")
 
 io.on('connection', client => {
@@ -77,20 +90,27 @@ var transporter = nodemailer.createTransport({
     }
 })
 
-// const { ExpressPeerServer } = require('peer')
-// const peerServer = ExpressPeerServer(server, {
-//     debug: true
-// })
-// var lastPeerId = '#'
-// var peerIndex = -1
-// peerServer.on('connection', function(client) {
-//     lastPeerId = client.id
-//     peerIndex += 1
-//     console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex}`)
-//     console.log(`server._clients: ${server._clients}`)
-//     io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}`)
-// })
-// app.use('/peerjs', peerServer)
+const { ExpressPeerServer } = require('peer')
+const peerServer = ExpressPeerServer(server, {
+    debug: true
+})
+var lastPeerId = '#'
+var peerIndex = -1
+var peerClients = []
+peerServer.on('connection', function(client) {
+    lastPeerId = client.id
+    peerClients.push(lastPeerId)
+    peerIndex += 1
+    let clientPeerId = '#'
+    if (peerIndex === 1) {
+        clientPeerId = peerClients[0]
+    }
+    clientPeerId
+    console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex} , а id другого клиента ${clientPeerId}`)
+    console.log(`server._clients: ${server._clients}`)
+    io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}|${clientPeerId}`)
+})
+app.use('/peerjs', peerServer)
 
 const gameStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -611,7 +631,7 @@ app.get('/api/experiment/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    console.log('отправляю фото')
+    // console.log('отправляю фото')
 
     fs.readdir(`${__dirname}/uploads/experiments/${req.query.id}`, (err, data) => {
         if (err) {
@@ -620,7 +640,7 @@ app.get('/api/experiment/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                console.log(`file: ${file}; mime: ${mime}`)
+                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -647,7 +667,7 @@ app.get('/api/experiment/document', (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     res.setHeader('Content-disposition', 'attachment; filename='+ `${req.query.id}.xps`);
 
-    console.log('отправляю документ')
+    // console.log('отправляю документ')
 
         fs.readdir(`${__dirname}/uploads/experiments/${req.query.id}`, (err, data) => {
         if (err) {
@@ -656,7 +676,7 @@ app.get('/api/experiment/document', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                console.log(`file: ${file}; mime: ${mime}`)
+                // console.log(`file: ${file}; mime: ${mime}`)
                 // const isWord = mime.includes('application/msword')
                 const isWord = mime.includes('application/msword') || mime.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') || mime.includes('application/vnd.ms-word.document.macroEnabled')
                 if (isWord) {
@@ -1872,7 +1892,7 @@ app.get('/api/user/avatar', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    console.log('отправляю аватар')
+    // console.log('отправляю аватар')
 
     fs.readdir(`${__dirname}/uploads/users/${req.query.id}`, (err, data) => {
         if (err) {
@@ -1881,7 +1901,7 @@ app.get('/api/user/avatar', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                console.log(`file: ${file}; mime: ${mime}`)
+                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -1907,7 +1927,7 @@ app.get('/api/game/thumbnail', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    console.log('отправляю миниатюру')
+    // console.log('отправляю миниатюру')
 
     fs.readdir(`${__dirname}/uploads/games/${req.query.name}`, (err, data) => {
         if (err) {
@@ -1916,7 +1936,7 @@ app.get('/api/game/thumbnail', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                console.log(`file: ${file}; mime: ${mime}`)
+                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -1942,7 +1962,7 @@ app.get('/api/manual/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    console.log('отправляю фото')
+    // console.log('отправляю фото')
 
     fs.readdir(`${__dirname}/uploads/manuals`, (err, data) => {
         if (err) {
@@ -1951,7 +1971,7 @@ app.get('/api/manual/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                console.log(`file: ${file}; mime: ${mime}`)
+                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -1977,7 +1997,7 @@ app.get('/api/illustration/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    console.log('отправляю фото')
+    // console.log('отправляю фото')
 
     fs.readdir(`${__dirname}/uploads/illustrations`, (err, data) => {
         if (err) {
@@ -1986,7 +2006,7 @@ app.get('/api/illustration/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                console.log(`file: ${file}; mime: ${mime}`)
+                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -2012,7 +2032,7 @@ app.get('/api/screenshot/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    console.log('отправляю фото')
+    // console.log('отправляю фото')
 
     fs.readdir(`${__dirname}/uploads/screenShots`, (err, data) => {
         if (err) {
@@ -2021,7 +2041,7 @@ app.get('/api/screenshot/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                console.log(`file: ${file}; mime: ${mime}`)
+                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -2047,7 +2067,7 @@ app.get('/api/msgs/thumbnail', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    console.log('отправляю миниатюру сообщения')
+    // console.log('отправляю миниатюру сообщения')
 
     return res.sendFile(`${__dirname}/uploads/msgs/${req.query.id}${req.query.content}`)
 
@@ -2062,7 +2082,7 @@ app.get('/api/game/distributive', (req, res) => {
     res.setHeader('Content-type', 'application/x-msdownload');
     res.setHeader('Content-disposition', 'attachment; filename='+ `${req.query.name}.exe`);
     
-    console.log(`отправляю дистрибутив ${__dirname}/uploads/games/${req.query.name}/${req.query.name}.exe ${req.query.name}.exe`)
+    // console.log(`отправляю дистрибутив ${__dirname}/uploads/games/${req.query.name}/${req.query.name}.exe ${req.query.name}.exe`)
 
     res.writeHead(200, {"Content-Type": "application/x-msdownload"})
     let file = fs.createReadStream(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`)
