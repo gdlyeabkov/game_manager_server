@@ -4,6 +4,7 @@ const path = require('path')
 const serveStatic = require('serve-static')
 const app = express()
 const server = require('http').createServer(app)
+// const server = require('http').Server(app)
 const { Server } = require("socket.io");
 const io = new Server(server)
 const nodemailer = require("nodemailer")
@@ -509,6 +510,8 @@ const MsgSchema = new mongoose.Schema({
         default: Date.now
     }
 }, { collection : 'mymsgs' })
+
+const MsgModel = mongoose.model('MsgModel', MsgSchema)
 
 const TalkSchema = new mongoose.Schema({
     title: String,
