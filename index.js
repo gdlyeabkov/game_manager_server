@@ -483,6 +483,16 @@ const PointsStoreItemSchema = new mongoose.Schema({
     
 const PointsStoreItemModel = mongoose.model('PointsStoreItemModel', PointsStoreItemSchema)
 
+const PointsStoreItemRelationSchema = new mongoose.Schema({
+    item: String,
+    user: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_points_store_item_relations' })
+    
+const PointsStoreItemRelationModel = mongoose.model('PointsStoreItemRelationModel', PointsStoreItemRelationSchema)
 
 const ReviewSchema = new mongoose.Schema({
     game: String,
@@ -629,6 +639,8 @@ const TalkRelationSchema = new mongoose.Schema({
     user: String
 }, { collection : 'my_talk_relations' })
 
+const TalkRelationModel = mongoose.model('TalkRelationModel', TalkRelationSchema)
+
 const IconSchema = new mongoose.Schema({
     title: String,
     desc: String
@@ -698,6 +710,13 @@ const GroupRelationSchema = new mongoose.Schema({
 }, { collection : 'my_group_relations' })
 
 const GroupRelationModel = mongoose.model('GroupRelationModel', GroupRelationSchema)
+
+const GameRelationSchema = new mongoose.Schema({
+    game: String,
+    user: String
+}, { collection : 'my_game_relations' })
+
+const GameRelationModel = mongoose.model('GameRelationModel', GameRelationSchema)
 
 const GroupRequestSchema = new mongoose.Schema({
     group: String,
@@ -792,6 +811,38 @@ app.get('/api/icon/photo', (req, res) => {
 
 })
 
+app.get('/api/points/item/photo', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    fs.readdir(`${__dirname}/uploads/items`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/items/${req.query.id}${ext}`)
+            }
+        }
+    })
+
+})
+
 app.get('/api/experiment/document', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -843,6 +894,25 @@ app.get('/api/groups/all', (req, res) => {
             return res.json({ groups: [], "status": "Error" })
         } else {
             return res.json({ groups: groups, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = TalkModel.find({  })
+    
+    query.exec((err, talks) => {
+        if (err) {
+            return res.json({ talks: [], "status": "Error" })
+        } else {
+            return res.json({ talks: talks, status: 'OK' })
         }
     })
     
@@ -1055,6 +1125,26 @@ app.get('/api/manuals/get', (req, res) => {
     
 })
 
+app.get('/api/talks/get', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = TalkModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, talk) => {
+        if (err) {
+            return res.json({ talk: null, "status": "Error" })
+        } else {
+            return res.json({ talk: talk, status: 'OK' })
+        }
+    })
+    
+})
+
+
 app.get('/api/reviews/get', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1180,6 +1270,23 @@ app.get('/api/icons/relations/delete', async (req, res) => {
     
 })
 
+app.get('/api/games/relations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GameRelationModel.deleteMany((err, relations) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/experiments/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1267,6 +1374,44 @@ app.get('/api/groups/relations/all', (req, res) => {
     
 })
 
+app.get('/api/points/items/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = PointsStoreItemRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GameRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/blacklist/relations/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1294,6 +1439,25 @@ app.get('/api/icons/relations/all', (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     let query = IconRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = TalkRelationModel.find({  })
     
     query.exec((err, relations) => {
         if (err) {
@@ -1753,6 +1917,60 @@ app.get('/api/groups/relations/add', async (req, res) => {
                 } else {
                     return res.json({ "status": "OK" })
                 }
+            })
+        }
+    })
+
+})
+
+app.get('/api/points/items/relations/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const relation = new PointsStoreItemRelationModel({ item: req.query.id, user: req.query.user })
+    relation.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            const price = req.query.price
+            UserModel.updateOne({ _id: req.query.user }, 
+            { 
+                "$inc": { "amount": -price }
+            }, (err, user) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/games/relations/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const gameRelation = new GameRelationModel({ game: req.query.id, user: req.query.user })
+    gameRelation.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            const price = req.query.price
+            UserModel.updateOne({ _id: req.query.user }, 
+            { 
+                "$inc": { "amount": -price }
+            }, (err, user) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
             })
         }
     })
@@ -2921,6 +3139,36 @@ app.get('/api/forums/create', async (req, res) => {
         }
         return res.json({
             status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/talks/create', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю беседу')
+
+    const talk = new TalkModel({ title: req.query.title, owner: req.query.owner })
+    talk.save(function (err, talk) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        const talkId = talk._id
+        const relation = new TalkRelationModel({ talk: talkId, user: req.query.owner })
+        relation.save(function (err) {
+            if (err) {
+                return res.json({ "status": "Error" })
+            }
+            else {
+                return res.json({ "status": "OK" })
+            }   
         })
     })
 
