@@ -12,6 +12,7 @@ import { HeaderComponent } from './header/header.component';
 import { CreateForumComponent } from './create-forum/create-forum.component';
 import { CreateExperimentComponent } from './create-experiment/create-experiment.component';
 import { CreateIconComponent } from './create-icon/create-icon.component';
+import { CreatePointsStoreItemComponent } from './create-points-store-item/create-points-store-item.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { CreateIconComponent } from './create-icon/create-icon.component';
     HeaderComponent,
     CreateForumComponent,
     CreateExperimentComponent,
-    CreateIconComponent
+    CreateIconComponent,
+    CreatePointsStoreItemComponent
   ],
   imports: [
     BrowserModule,

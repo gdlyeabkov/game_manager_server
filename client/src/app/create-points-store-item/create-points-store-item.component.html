@@ -1,0 +1,114 @@
+<app-header></app-header>
+<form
+    #form
+    ngNoForm
+    method="POST"
+    action="{{'/api/points/items/create?title=' + title + '&desc=' + desc + '&type=' + type + '&price=' + price + '&ext=' + ext}}"
+    class="d-flex justify-content flex-column align-items-center"
+    enctype="multipart/form-data"
+>
+    <input
+        placeholder="Название"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="title"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <textarea
+        placeholder="Описание"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="desc"
+        [ngModelOptions]="{standalone:true}"
+    ></textarea>
+    <input
+        name="preview"
+        placeholder="Фото"
+        type="file"
+        class="m-2 w-25 form-control"
+        #preview
+        (click)="openPhoto($event)"
+    />
+    <select
+        class="m-2 form-select w-25"
+        aria-label="Default select example"
+        #typeSelector
+        (change)="onChangeType()"
+    >
+        <option
+            value="gameSubjects"
+        >
+            Предметы из игр
+        </option>
+        <option
+            value="subjectsSet"
+        >
+            Наборы предметов
+        </option>    
+        <option
+            value="communityRewards"
+        >
+            Награды сообщества
+        </option>
+        <option
+            value="avatar"
+        >
+            Аватар
+        </option>
+        <option
+            value="background"
+        >
+            Фоны
+        </option>
+        <option
+            value="seasonIcon"
+        >
+            Сезонный значок
+        </option>
+        <option
+            value="gameProfile"
+        >
+            Игровые профили
+        </option>
+        <option
+            value="gameProfile"
+        >
+            Профиль художников
+        </option>
+        <option
+            value="gameProfile"
+        >
+            Витрины профиля
+        </option>
+        <option
+            value="sticker"
+        >
+            Анимированные стикеры
+        </option>
+        <option
+            value="chatEffect"
+        >
+            Эффекты для чата
+        </option>
+        <option
+            value="smiley"
+        >
+            Смайлики
+        </option>
+    </select>
+    <input
+        required
+        min="99"
+        placeholder="Очки"
+        type="number"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="price"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <button
+        class="btn btn-primary"
+        (click)="uploadFiles()"
+    >
+        Добавить
+    </button>
+</form>

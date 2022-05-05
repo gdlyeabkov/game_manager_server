@@ -366,6 +366,35 @@ const iconsStorage = multer.diskStorage({
 })
 const iconUpload = multer({ storage: iconsStorage })
 
+const pointsStoreItemsStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const pointsStoreItemPath = `${pathToDir}uploads/items`
+        const isPointsStoreItemPathExists = fs.existsSync(pointsStoreItemPath)
+        const isPointsStoreItemPathNotExists = !isPointsStoreItemPathExists
+        if (isPointsStoreItemPathNotExists) {
+            fs.mkdirSync(pointsStoreItemPath)
+        }
+        cb(null, `uploads/items`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const pointsStoreItemId = 'hash'
+        const pointsStoreItemPath = `${pathToDir}uploads/items`
+        const isPointsStoreItemPathExists = fs.existsSync(pointsStoreItemPath)
+        const isPointsStoreItemPathNotExists = !isPointsStoreItemPathExists
+        const ext = mimeTypes.extension(req.query.ext)
+        if (isPointsStoreItemPathNotExists) {
+            fs.mkdirSync(pointsStoreItemPath)
+            cb(null, `${pointsStoreItemId}${ext}`)
+        } else {
+            console.log(`ext: ${ext}`)
+            cb(null, `${pointsStoreItemId}.${ext}`)
+        }
+    }
+})
+const pointsStoreItemUpload = multer({ storage: pointsStoreItemsStorage })
+
 app.use('/', serveStatic(path.join(__dirname, '/client/dist/client')))
 
 const url = `mongodb+srv://glebClusterUser:glebClusterUserPassword@cluster0.fvfru.mongodb.net/digitaldistributtionservice?retryWrites=true&w=majority`;
@@ -421,6 +450,10 @@ const UserSchema = new mongoose.Schema({
     phone: {
         type: String,
         default: ''
+    },
+    isEmailConfirmed: {
+        type: Boolean,
+        default: false
     }
 }, { collection : 'mygamers' })
     
@@ -436,6 +469,20 @@ const ExperimentSchema = new mongoose.Schema({
 }, { collection : 'myexperiments' })
     
 const ExperimentModel = mongoose.model('ExperimentModel', ExperimentSchema)
+
+const PointsStoreItemSchema = new mongoose.Schema({
+    title: String,
+    desc: String,
+    type: String,
+    price: Number,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_points_store_items' })
+    
+const PointsStoreItemModel = mongoose.model('PointsStoreItemModel', PointsStoreItemSchema)
+
 
 const ReviewSchema = new mongoose.Schema({
     game: String,
@@ -591,7 +638,11 @@ const IconModel = mongoose.model('IconModel', IconSchema)
 
 const IconRelationSchema = new mongoose.Schema({
     icon: String,
-    user: String
+    user: String,
+    date: {
+        type: Date,
+        default: Date.now()
+    },
 }, { collection : 'my_icon_relations' })
 
 const IconRelationModel = mongoose.model('IconRelationModel', IconRelationSchema)
@@ -709,6 +760,38 @@ app.get('/api/experiment/photo', (req, res) => {
 
 })
 
+app.get('/api/icon/photo', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    fs.readdir(`${__dirname}/uploads/manuals`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/icons/${req.query.id}${ext}`)
+            }
+        }
+    })
+
+})
+
 app.get('/api/experiment/document', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -760,6 +843,61 @@ app.get('/api/groups/all', (req, res) => {
             return res.json({ groups: [], "status": "Error" })
         } else {
             return res.json({ groups: groups, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/points/items/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = PointsStoreItemModel.find({  })
+    
+    query.exec((err, items) => {
+        if (err) {
+            return res.json({ items: [], "status": "Error" })
+        } else {
+            return res.json({ items: items, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/points/items/get', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = PointsStoreItemModel.findOne({ _id: req.query.id })
+    
+    query.exec((err, item) => {
+        if (err) {
+            return res.json({ item: null, "status": "Error" })
+        } else {
+            return res.json({ item: item, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/points/items/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await PointsStoreItemModel.deleteMany((err, items) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            return res.json({ status: 'OK' })
         }
     })
     
@@ -1747,6 +1885,23 @@ app.get('/api/groups/get', (req, res) => {
 
 })
 
+app.get('/api/icons/get', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    IconModel.findOne({ _id: req.query.id }, (err, icon) => {
+        if (err) {
+            return res.json({ icon: null, status: 'Error' })
+        } else {
+            return res.json({ icon: icon, status: 'OK' })
+        }
+    })
+
+})
+
 app.get('/api/friends/requests/reject', async (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2273,6 +2428,26 @@ app.get('/api/user/status/set', (req, res) => {
     })
 })
 
+app.get('/api/users/email/confirm', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    UserModel.updateOne({ _id: req.query.id },
+    {
+        isEmailConfirmed: true
+    }, (err, user) => {
+        const headers = {
+            'Location': 'https://google.com'
+        }
+        res.writeHead(302, headers)
+        res.end()
+        return res
+    })
+})
+
 app.get('/api/friends/remove', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2629,9 +2804,34 @@ app.post('/api/icons/create', iconUpload.fields([{name: 'icon', maxCount: 1}]), 
         const generatedId = generatedIcon._id
         const pathSeparator = path.sep
         const pathToDir = `${__dirname}${pathSeparator}`
-        const manualPath = `${pathToDir}uploads/icons/hash.${mimeTypes.extension(req.query.ext)}`
-        const newManualPath = `${pathToDir}uploads/icons/${generatedId}${mimeTypes.extension(req.query.ext)}`
-        fs.rename(manualPath, newManualPath, (err) => {
+        const iconPath = `${pathToDir}uploads/icons/hash.${mimeTypes.extension(req.query.ext)}`
+        const newIconPath = `${pathToDir}uploads/icons/${generatedId}.${mimeTypes.extension(req.query.ext)}`
+        fs.rename(iconPath, newIconPath, (err) => {
+            
+        })
+    })
+    
+    return await res.redirect('/')
+
+})
+
+app.post('/api/points/items/create', pointsStoreItemUpload.fields([{name: 'preview', maxCount: 1}]), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю элемент магазина очков')
+
+    const icon = new PointsStoreItemModel({ title: req.query.title, desc: req.query.desc, type: req.query.type, price: req.query.price })
+    icon.save(function (err, generatedItem) {
+        const generatedId = generatedItem._id
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const pointsStoreItemPath = `${pathToDir}uploads/items/hash.${mimeTypes.extension(req.query.ext)}`
+        const newPointsStoreItemPath = `${pathToDir}uploads/items/${generatedId}.${mimeTypes.extension(req.query.ext)}`
+        fs.rename(pointsStoreItemPath, newPointsStoreItemPath, (err) => {
             
         })
     })
@@ -2700,7 +2900,7 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
 })
 
 app.get('/debug', (req, res) => {
-    console.log(`mime: ${mimeTypes.extension('image/jpeg')}`)
+    return res
 })
 
 app.get('/api/forums/create', async (req, res) => {
