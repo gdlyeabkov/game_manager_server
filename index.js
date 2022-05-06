@@ -172,6 +172,37 @@ const usersStorage = multer.diskStorage({
 })
 const usersUpload = multer({ storage: usersStorage })
 
+const talksStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const talkId = req.query.id
+        const talkPath = `${pathToDir}uploads/talks`
+        const isTalkPathExists = fs.existsSync(talkPath)
+        const isTalkPathNotExists = !isTalkPathExists
+        if (isTalkPathNotExists) {
+            fs.mkdirSync(talkPath)
+        }
+        cb(null, `uploads/talks`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const talkId = req.query.id
+        const talkPath = `${pathToDir}uploads/talks`
+        const isTalkPathExists = fs.existsSync(talkPath)
+        const isTalkPathNotExists = !isTalkPathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isTalkPathNotExists) {
+            fs.mkdirSync(talkPath)
+            cb(null, `${talkId}${ext}`)
+        } else {
+            cb(null, `${talkId}${ext}`)
+        }
+    }
+})
+
+const talksUpload = multer({ storage: talksStorage })
+
 const msgsStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const msgPath = `${pathToDir}uploads/msgs`
@@ -629,10 +660,21 @@ const MsgModel = mongoose.model('MsgModel', MsgSchema)
 
 const TalkSchema = new mongoose.Schema({
     title: String,
-    owner: String
+    owner: String,
+    slogan: {
+        type: String,
+        default: ''
+    }
 }, { collection : 'my_talks' })
 
 const TalkModel = mongoose.model('TalkModel', TalkSchema)
+
+const TalkChannelSchema = new mongoose.Schema({
+    title: String,
+    talk: String
+}, { collection : 'my_talk_channels' })
+
+const TalkChannelModel = mongoose.model('TalkChannelModel', TalkChannelSchema)
 
 const TalkRelationSchema = new mongoose.Schema({
     talk: String,
@@ -779,6 +821,40 @@ app.get('/api/experiment/photo', (req, res) => {
 
 })
 
+app.get('/api/talk/photo', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    console.log('отправляю фото')
+
+    fs.readdir(`${__dirname}/uploads/talks`, (err, data) => {
+        if (err) {
+            return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+        } else {
+            let ext = ''
+            for (let file of data) {
+                const mime = mimeTypes.lookup(file) || ''
+                const isImg = mime.includes('image')
+                if (isImg) {
+                    ext = path.extname(file)
+                    break
+                }
+            }
+            const extLength = ext.length
+            const isNotFound = extLength <= 0
+            if (isNotFound) {
+                return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
+            } else {
+                return res.sendFile(`${__dirname}/uploads/talks/${req.query.id}${ext}`)
+            }
+        }
+    })
+
+})
+
 app.get('/api/icon/photo', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -894,6 +970,25 @@ app.get('/api/groups/all', (req, res) => {
             return res.json({ groups: [], "status": "Error" })
         } else {
             return res.json({ groups: groups, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/channels/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = TalkChannelModel.find({  })
+    
+    query.exec((err, channels) => {
+        if (err) {
+            return res.json({ channels: [], "status": "Error" })
+        } else {
+            return res.json({ channels: channels, status: 'OK' })
         }
     })
     
@@ -1210,6 +1305,23 @@ app.get('/api/groups/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await GroupModel.deleteMany((err, groups) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/channels/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkChannelModel.deleteMany((err, talks) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2681,6 +2793,26 @@ app.post('/api/user/edit', usersUpload.any(), (req, res) => {
 
 })
 
+app.post('/api/talk/edit', talksUpload.any(), (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    TalkModel.updateOne({ _id: req.query.id },
+    {
+        title: req.query.title,
+        slogan: req.query.slogan
+    }, (err, talk) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+
+})
+
 app.get('/api/user/status/set', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3206,6 +3338,29 @@ app.get('/api/forums/create', async (req, res) => {
 
     const forum = new ForumModel({ title: req.query.title })
     forum.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/talks/channels/create', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю канал')
+
+    const channel = new TalkChannelModel({ talk: req.query.id, title: req.query.title, })
+    channel.save(function (err) {
         if (err) {
             return res.json({
                 status: 'Error'
