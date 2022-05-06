@@ -1287,6 +1287,40 @@ app.get('/api/talks/relations/delete', async (req, res) => {
     
 })
 
+app.get('/api/talks/relations/clear', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkRelationModel.deleteMany((err, relations) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkModel.deleteMany((err, talks) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/games/relations/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
