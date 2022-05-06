@@ -1270,6 +1270,23 @@ app.get('/api/icons/relations/delete', async (req, res) => {
     
 })
 
+app.get('/api/talks/relations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkRelationModel.deleteOne({ talk: req.query.id, user: req.query.user }, (err, relation) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/games/relations/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2169,8 +2186,10 @@ app.get('/api/msgs/add', async (req, res) => {
     const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type })
     msg.save(function (err) {
         if (err) {
+            console.log(`Ошибка отправки сообщения`)
             return res.json({ "status": "Error" })
         } else {
+            console.log(`сообщение отправлено`)
             return res.json({ "status": "OK" })
         }
     })
@@ -2666,6 +2685,27 @@ app.get('/api/users/email/confirm', (req, res) => {
     })
 })
 
+app.get('/api/talks/relations/add', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const relation = new TalkRelationModel({ talk: req.query.id, user: req.query.user })
+    relation.save(async function (err) {
+        await MsgModel.deleteOne({ _id: req.query.msg }, (err) => {
+            const headers = {
+                'Location': 'https://google.com'
+            }
+            res.writeHead(302, headers)
+            res.end()
+            return res
+        })   
+    })
+
+})
+
 app.get('/api/friends/remove', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3157,6 +3197,7 @@ app.get('/api/talks/create', async (req, res) => {
     talk.save(function (err, talk) {
         if (err) {
             return res.json({
+                id: 'mockId',
                 status: 'Error'
             })
         }
@@ -3164,10 +3205,16 @@ app.get('/api/talks/create', async (req, res) => {
         const relation = new TalkRelationModel({ talk: talkId, user: req.query.owner })
         relation.save(function (err) {
             if (err) {
-                return res.json({ "status": "Error" })
+                return res.json({
+                    id: talkId,
+                    "status": "Error"
+                })
             }
             else {
-                return res.json({ "status": "OK" })
+                return res.json({
+                    id: talkId,
+                    "status": "OK"
+                })
             }   
         })
     })
