@@ -650,6 +650,7 @@ const MsgSchema = new mongoose.Schema({
     friend: String,
     content: String,
     type: String,
+    channel: String,
     date: {
         type: Date,
         default: Date.now
@@ -1390,6 +1391,23 @@ app.get('/api/talks/relations/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await TalkRelationModel.deleteOne({ talk: req.query.id, user: req.query.user }, (err, relation) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/channels/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkChannelModel.deleteOne({ _id: req.query.id }, (err, channel) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2329,7 +2347,7 @@ app.get('/api/msgs/add', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type })
+    const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type, channel: req.query.channel })
     msg.save(function (err) {
         if (err) {
             console.log(`Ошибка отправки сообщения`)
@@ -3400,9 +3418,18 @@ app.get('/api/talks/create', async (req, res) => {
                 })
             }
             else {
-                return res.json({
-                    id: talkId,
-                    "status": "OK"
+                const channel = new TalkChannelModel({ talk: talkId, title: 'Основной' })
+                channel.save(function (err) {
+                    if (err) {
+                        return res.json({
+                            id: talkId,
+                            status: 'Error'
+                        })
+                    }
+                    return res.json({
+                        id: talkId,
+                        status: 'OK'
+                    })
                 })
             }   
         })
