@@ -32,24 +32,16 @@ export class GroupAttacherComponent implements OnInit {
             (innerValue: any) => {
               const currentUserId = value['id']
               talkId = innerValue['talk']
-              alert(`talkId: ${talkId}; currentUserId: ${currentUserId}`)  
               this.http.get(
                 `http://localhost:4000/api/talks/relations/add/?id=${talkId}&user=${currentUserId}&msg=${'mockMsgId'}`
               ).subscribe(
                 (nestedValue: any) => {
-                  const status = nestedValue['status']
-                  isOk = status === "OK"
-                  if (isOk) {
-                    alert('Вы были добавлены в группу')
-                  } else {
-                    alert('Не удается добавить вас в группу') 
-                  }
+                  alert('Вы были добавлены в группу')
                 }
               )
             }
           )
         }
-        alert(status)
       }
     );
   }

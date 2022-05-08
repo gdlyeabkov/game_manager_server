@@ -2883,14 +2883,25 @@ app.get('/api/talks/relations/add', (req, res) => {
     
     const relation = new TalkRelationModel({ talk: req.query.id, user: req.query.user })
     relation.save(async function (err) {
-        await MsgModel.deleteOne({ _id: req.query.msg }, (err) => {
+        const msgId = req.query.msg
+        const isMsgId = msgId !== 'mockMsgId' 
+        if (isMsgId) {
+            await MsgModel.deleteOne({ _id: req.query.msg }, (err) => {
+                const headers = {
+                    'Location': 'https://google.com'
+                }
+                res.writeHead(302, headers)
+                res.end()
+                return res
+            })   
+        } else {
             const headers = {
                 'Location': 'https://google.com'
             }
             res.writeHead(302, headers)
             res.end()
             return res
-        })   
+        }
     })
 
 })
