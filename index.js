@@ -772,6 +772,23 @@ const GroupRequestSchema = new mongoose.Schema({
 
 const GroupRequestModel = mongoose.model('GroupRequestModel', GroupRequestSchema)
 
+const TalkRoleSchema = new mongoose.Schema({
+    talk: String,
+    title: String,
+    sendMsgs: Boolean,
+    notifyAllUsers: Boolean,
+    bindAndUnbindStreams: Boolean,
+    kick: Boolean,
+    block: Boolean,
+    invite: Boolean,
+    updateRoles: Boolean,
+    assignRoles: Boolean,
+    updateTalkTitleSloganAndAvatar: Boolean,
+    createAndUpdateChannels: Boolean
+}, { collection : 'my_talk_roles' })
+
+const TalkRoleModel = mongoose.model('TalkRoleModel', TalkRoleSchema)
+
 app.get('/api/games/get', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -975,6 +992,25 @@ app.get('/api/groups/all', (req, res) => {
             return res.json({ groups: [], "status": "Error" })
         } else {
             return res.json({ groups: groups, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/roles/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = TalkRoleModel.find({  })
+    
+    query.exec((err, roles) => {
+        if (err) {
+            return res.json({ roles: [], "status": "Error" })
+        } else {
+            return res.json({ roles: roles, status: 'OK' })
         }
     })
     
@@ -1446,6 +1482,23 @@ app.get('/api/talks/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await TalkModel.deleteMany((err, talks) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/roles/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkRoleModel.deleteMany((err, talks) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2254,6 +2307,37 @@ app.get('/api/groups/add', (req, res) => {
 
 })
 
+app.get('/api/talks/roles/create', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const role = new TalkRoleModel({
+        title: req.query.title,
+        talk: req.query.id,
+        sendMsgs: false,
+        notifyAllUsers: false,
+        bindAndUnbindStreams: false,
+        kick: false,
+        block: false,
+        invite: false,
+        updateRoles: false,
+        assignRoles: false,
+        updateTalkTitleSloganAndAvatar: false,
+        createAndUpdateChannels: false
+    })
+    role.save(function (err, role) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.get('/api/user/comments/get', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2283,6 +2367,23 @@ app.get('/api/groups/get', (req, res) => {
             return res.json({ group: null, status: 'Error' })
         } else {
             return res.json({ group: group, status: 'OK' })
+        }
+    })
+
+})
+
+app.get('/api/talks/roles/get', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    TalkRoleModel.findOne({ _id: req.query.id }, (err, role) => {
+        if (err) {
+            return res.json({ role: null, status: 'Error' })
+        } else {
+            return res.json({ role: role, status: 'OK' })
         }
     })
 
@@ -3442,9 +3543,32 @@ app.get('/api/talks/create', async (req, res) => {
                             status: 'Error'
                         })
                     }
-                    return res.json({
-                        id: talkId,
-                        status: 'OK'
+                    const role = new TalkRoleModel({
+                        title: 'Все участники',
+                        talk: talkId,
+                        sendMsgs: true,
+                        notifyAllUsers: true,
+                        bindAndUnbindStreams: true,
+                        kick: false,
+                        block: false,
+                        invite: true,
+                        updateRoles: false,
+                        assignRoles: false,
+                        updateTalkTitleSloganAndAvatar: true,
+                        createAndUpdateChannels: true
+                    })
+                    role.save(function (err, role) {
+                        if (err) {
+                            return res.json({
+                                id: talkId,
+                                "status": "Error"
+                            })
+                        } else {
+                            return res.json({
+                                id: talkId,
+                                status: 'OK'
+                            })
+                        }
                     })
                 })
             }   
