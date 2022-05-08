@@ -7,6 +7,7 @@ import {  CreateForumComponent } from './create-forum/create-forum.component'
 import {  CreateExperimentComponent } from './create-experiment/create-experiment.component'
 import {  CreateIconComponent } from './create-icon/create-icon.component'
 import {  CreatePointsStoreItemComponent } from './create-points-store-item/create-points-store-item.component'
+import {  GroupAttacherComponent } from './group-attacher/group-attacher.component'
 import {  HomeComponent } from './home/home.component'
 
 const routes: Routes = [
@@ -33,6 +34,10 @@ const routes: Routes = [
   {
     'path': 'points/items/add',
     'component': CreatePointsStoreItemComponent
+  },
+  {
+    'path': 'groups/attach',
+    'component': GroupAttacherComponent
   },
   {
     'path': '**',

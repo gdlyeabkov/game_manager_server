@@ -1,1 +1,26 @@
-<p>group-attacher works!</p>
+<app-header></app-header>
+<div
+    method="GET"
+    class="d-flex justify-content flex-column align-items-center"
+>
+    <input
+        placeholder="Email"
+        type="email"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="email"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <input
+        placeholder="Пароль"
+        type="password"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="password"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <button
+        class="btn btn-primary"
+        (click)="checkUser()"
+    >
+        Войти
+    </button>
+</div> 
