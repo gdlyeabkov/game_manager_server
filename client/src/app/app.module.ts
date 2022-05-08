@@ -13,6 +13,7 @@ import { CreateForumComponent } from './create-forum/create-forum.component';
 import { CreateExperimentComponent } from './create-experiment/create-experiment.component';
 import { CreateIconComponent } from './create-icon/create-icon.component';
 import { CreatePointsStoreItemComponent } from './create-points-store-item/create-points-store-item.component';
+import { GroupAttacherComponent } from './group-attacher/group-attacher.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +25,8 @@ import { CreatePointsStoreItemComponent } from './create-points-store-item/creat
     CreateForumComponent,
     CreateExperimentComponent,
     CreateIconComponent,
-    CreatePointsStoreItemComponent
+    CreatePointsStoreItemComponent,
+    GroupAttacherComponent
   ],
   imports: [
     BrowserModule,

@@ -485,6 +485,10 @@ const UserSchema = new mongoose.Schema({
     isEmailConfirmed: {
         type: Boolean,
         default: false
+    },
+    statusDate: {
+        type: Date,
+        default: Date.now()
     }
 }, { collection : 'mygamers' })
     
@@ -2840,7 +2844,8 @@ app.get('/api/user/status/set', (req, res) => {
     
     UserModel.updateOne({ _id: req.query.id },
     {
-        status: req.query.status
+        status: req.query.status,
+        statusDate: Date.now()
     }, (err, user) => {
         if (err) {
             return res.json({ status: 'Error' })        
