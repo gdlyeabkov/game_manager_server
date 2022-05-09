@@ -10,15 +10,15 @@ const server = require('http').Server(app)
 const { Server } = require("socket.io");
 
 // const io = new Server(server)
-const io = require("socket.io")(server, {
-    serveClient: false,
-    // below are engine.IO options
-    origins: '*:*',
-    transports: ['polling'],
-    pingInterval: 10000,
-    pingTimeout: 5000,
-    cookie: false
-})
+// const io = require("socket.io")(server, {
+//     serveClient: false,
+//     origins: '*:*',
+//     transports: ['polling'],
+//     pingInterval: 10000,
+//     pingTimeout: 5000,
+//     cookie: false
+// })
+const io = require("socket.io")(server)
 
 const nodemailer = require("nodemailer")
 
@@ -90,27 +90,27 @@ var transporter = nodemailer.createTransport({
     }
 })
 
-const { ExpressPeerServer } = require('peer')
-const peerServer = ExpressPeerServer(server, {
-    debug: true
-})
-var lastPeerId = '#'
-var peerIndex = -1
-var peerClients = []
-peerServer.on('connection', function(client) {
-    lastPeerId = client.id
-    peerClients.push(lastPeerId)
-    peerIndex += 1
-    let clientPeerId = '#'
-    if (peerIndex === 1) {
-        clientPeerId = peerClients[0]
-    }
-    clientPeerId
-    console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex} , а id другого клиента ${clientPeerId}`)
-    console.log(`server._clients: ${server._clients}`)
-    io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}|${clientPeerId}`)
-})
-app.use('/peerjs', peerServer)
+// const { ExpressPeerServer } = require('peer')
+// const peerServer = ExpressPeerServer(server, {
+//     debug: true
+// })
+// var lastPeerId = '#'
+// var peerIndex = -1
+// var peerClients = []
+// peerServer.on('connection', function(client) {
+//     lastPeerId = client.id
+//     peerClients.push(lastPeerId)
+//     peerIndex += 1
+//     let clientPeerId = '#'
+//     if (peerIndex === 1) {
+//         clientPeerId = peerClients[0]
+//     }
+//     clientPeerId
+//     console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex} , а id другого клиента ${clientPeerId}`)
+//     console.log(`server._clients: ${server._clients}`)
+//     io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}|${clientPeerId}`)
+// })
+// app.use('/peerjs', peerServer)
 
 const gameStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -784,10 +784,19 @@ const TalkRoleSchema = new mongoose.Schema({
     updateRoles: Boolean,
     assignRoles: Boolean,
     updateTalkTitleSloganAndAvatar: Boolean,
-    createAndUpdateChannels: Boolean
+    createAndUpdateChannels: Boolean,
+    isCustom: Boolean
 }, { collection : 'my_talk_roles' })
 
 const TalkRoleModel = mongoose.model('TalkRoleModel', TalkRoleSchema)
+
+const TalkRoleRelationSchema = new mongoose.Schema({
+    role: String,
+    user: String,
+    talk: String
+}, { collection : 'my_talk_role_relations' })
+
+const TalkRoleRelationModel = mongoose.model('TalkRoleRelationModel', TalkRoleRelationSchema)
 
 app.get('/api/games/get', (req, res) => {    
     
@@ -1011,6 +1020,25 @@ app.get('/api/talks/roles/all', (req, res) => {
             return res.json({ roles: [], "status": "Error" })
         } else {
             return res.json({ roles: roles, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/roles/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = TalkRoleRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
         }
     })
     
@@ -1499,6 +1527,23 @@ app.get('/api/talks/roles/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await TalkRoleModel.deleteMany((err, talks) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/talks/roles/relations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkRoleRelationModel.deleteMany((err, talks) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2326,9 +2371,60 @@ app.get('/api/talks/roles/create', (req, res) => {
         updateRoles: false,
         assignRoles: false,
         updateTalkTitleSloganAndAvatar: false,
-        createAndUpdateChannels: false
+        createAndUpdateChannels: false,
+        isCustom: true
     })
     role.save(function (err, role) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/talks/roles/edit', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    TalkRoleModel.updateOne({ _id: req.query.id },
+    {
+        sendMsgs: req.query.sendMsgs,
+        notifyAllUsers: req.query.notifyAllUsers,
+        bindAndUnbindStreams: req.query.bindAndUnbindStreams,
+        kick: req.query.kick,
+        block: req.query.block,
+        invite: req.query.invite,
+        updateRoles: req.query.updateRoles,
+        assignRoles: req.query.assignRoles,
+        updateTalkTitleSloganAndAvatar: req.query.updateTalkTitleSloganAndAvatar,
+        createAndUpdateChannels: req.query.createAndUpdateChannels
+    }, (err, role) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+
+})
+
+app.get('/api/talks/roles/relations/create', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const relation = new TalkRoleRelationModel({
+        role: req.query.id,
+        user: req.query.user,
+        talk: req.query.talk
+    })
+    relation.save(function (err, role) {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2415,6 +2511,47 @@ app.get('/api/friends/requests/reject', async (req, res) => {
     
     await FriendRequestModel.deleteOne({ _id: req.query.id })
     return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/talks/roles/relations/remove', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = TalkRoleRelationModel.findOne({ _id: req.query.id })
+    query.exec((err, relation) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            const relationUserId = relation.user
+            const relationRoleId = relation.role
+            let query = TalkRoleModel.findOne({ _id: relationRoleId })
+            query.exec(async (err, role) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }
+                const roleTitle = role.title
+                const isAllUsersRole = roleTitle === 'Все участники'
+                if (isAllUsersRole) {
+                    const roleTalkId = role.talk
+                    await TalkRelationModel.deleteOne({ talk: roleTalkId, user: relationUserId }, async (err, relation) => {
+                        if (err) {
+                            return res.json({ "status": "Error" })
+                        } else {
+                            await TalkRoleRelationModel.deleteMany({ user: relationUserId, talk: roleTalkId })
+                            return res.json({ status: 'OK' })
+                        }
+                    })
+                } else {
+                    await TalkRoleRelationModel.deleteOne({ _id: req.query.id })
+                    return res.json({ status: 'OK' })    
+                }
+            })
+        }
+    })
 
 })
 
@@ -2916,6 +3053,25 @@ app.post('/api/user/edit', usersUpload.any(), (req, res) => {
 
 })
 
+app.get('/api/user/name/set', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    UserModel.updateOne({ _id: req.query.id },
+    {
+        name: req.query.name
+    }, (err, user) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+
+})
+
 app.post('/api/talk/edit', talksUpload.any(), (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2996,12 +3152,23 @@ app.get('/api/talks/relations/add', (req, res) => {
                 return res
             })   
         } else {
-            const headers = {
-                'Location': 'https://google.com'
-            }
-            res.writeHead(302, headers)
-            res.end()
-            return res
+            let query = TalkRoleModel.findOne({ title: 'Все участники', talk: req.query.id })
+            query.exec((err, role) => {
+                const roleId = role._id
+                const roleRelation = new TalkRoleRelationModel({
+                    role: roleId,
+                    user: req.query.user,
+                    talk: req.query.id,
+                })
+                roleRelation.save(function (err, role) {
+                    const headers = {
+                        'Location': 'https://google.com'
+                    }
+                    res.writeHead(302, headers)
+                    res.end()
+                    return res
+                })
+            })
         }
     })
 
@@ -3508,6 +3675,23 @@ app.get('/api/talks/channels/create', async (req, res) => {
 
 })
 
+app.get('/api/talks/roles/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await TalkRoleModel.deleteOne({ _id: req.query.id }, (err, role) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/talks/create', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3555,7 +3739,8 @@ app.get('/api/talks/create', async (req, res) => {
                         updateRoles: false,
                         assignRoles: false,
                         updateTalkTitleSloganAndAvatar: true,
-                        createAndUpdateChannels: true
+                        createAndUpdateChannels: true,
+                        isCustom: false
                     })
                     role.save(function (err, role) {
                         if (err) {
@@ -3564,10 +3749,27 @@ app.get('/api/talks/create', async (req, res) => {
                                 "status": "Error"
                             })
                         } else {
-                            return res.json({
-                                id: talkId,
-                                status: 'OK'
+                            
+                            const roleId = role._id
+                            const roleRelation = new TalkRoleRelationModel({
+                                role: roleId,
+                                user: req.query.owner,
+                                talk: talkId,
                             })
+                            roleRelation.save(function (err, roleRelation) {
+                                if (err) {
+                                    return res.json({
+                                        id: talkId,
+                                        "status": "Error"
+                                    })
+                                } else {
+                                    return res.json({
+                                        id: talkId,
+                                        status: 'OK'
+                                    })
+                                }  
+                            })
+
                         }
                     })
                 })
