@@ -489,6 +489,10 @@ const UserSchema = new mongoose.Schema({
     statusDate: {
         type: Date,
         default: Date.now()
+    },
+    lastGame: {
+        type: String,
+        default: 'mockId'
     }
 }, { collection : 'mygamers' })
     
@@ -683,7 +687,11 @@ const TalkChannelModel = mongoose.model('TalkChannelModel', TalkChannelSchema)
 
 const TalkRelationSchema = new mongoose.Schema({
     talk: String,
-    user: String
+    user: String,
+    isBlocked: {
+        type: Boolean,
+        default: false
+    }
 }, { collection : 'my_talk_relations' })
 
 const TalkRelationModel = mongoose.model('TalkRelationModel', TalkRelationSchema)
@@ -3898,6 +3906,33 @@ app.get('/api/users/email/set', (req, res) => {
             return res.json({ status: 'Error' })        
         }
         return res.json({ status: 'OK' })
+    })
+    
+})
+
+app.get('/api/talks/relations/block/toggle', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    TalkRelationModel.findOne({ _id: req.query.id }, (err, relation) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            const isBlocked = relation.isBlocked
+            const toggledValue = !isBlocked
+            TalkRelationModel.updateOne({ _id: req.query.id },
+            {
+                isBlocked: toggledValue
+            }, (err, relation) => {
+                if (err) {
+                    return res.json({ status: 'Error' })        
+                }
+                return res.json({ status: 'OK' })
+            })
+        }
     })
     
 })
