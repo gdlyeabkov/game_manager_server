@@ -2242,6 +2242,25 @@ app.get('/api/points/items/relations/add', async (req, res) => {
 
 })
 
+app.get('/api/user/games/last/set', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    UserModel.updateOne({ _id: req.query.id }, 
+    { 
+        lastGame: req.query.game
+    }, (err, user) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        }  
+        return res.json({ "status": "OK" })
+    })
+
+})
+
 app.get('/api/games/relations/add', async (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
