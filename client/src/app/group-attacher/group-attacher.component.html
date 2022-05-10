@@ -3,6 +3,9 @@
     method="GET"
     class="d-flex justify-content flex-column align-items-center"
 >
+    <p>
+       Вступить в группу 
+    </p>
     <input
         placeholder="Email"
         type="email"
@@ -17,6 +20,12 @@
         [(ngModel)]="password"
         [ngModelOptions]="{standalone:true}"
     />
+    <p
+        *ngIf="isErrors"
+        class="errors"
+    >
+        Вы неправильно ввели E-mail или пароль
+    </p>
     <button
         class="btn btn-primary"
         (click)="checkUser()"

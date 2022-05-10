@@ -37,6 +37,7 @@ io.on('connection', client => {
     })
     client.on('user_send_msg', (msg) => {
         console.log(`user send msg: ${msg}`)
+        // io.sockets.emit('friend_send_msg_notification', msg)
         io.sockets.emit('friend_send_msg', msg)
     })
     client.on('user_is_toggle_status', (msg) => {
