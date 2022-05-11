@@ -668,6 +668,17 @@ const MsgSchema = new mongoose.Schema({
 
 const MsgModel = mongoose.model('MsgModel', MsgSchema)
 
+const MsgReactionSchema = new mongoose.Schema({
+    msg: String,
+    content: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_msg_reactions' })
+
+const MsgReactionModel = mongoose.model('MsgReactionModel', MsgReactionSchema)
+
 const TalkSchema = new mongoose.Schema({
     title: String,
     owner: String,
@@ -1986,6 +1997,44 @@ app.get('/api/msgs/get', (req, res) => {
     
 })
 
+app.get('/api/msgs/reactions/get', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+   
+    
+    let query = MsgReactionModel.find({  })
+    
+    query.exec((err, reactions) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ reactions: reactions, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/msgs/remove', async (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+   
+    
+    await MsgModel.deleteOne({ _id: req.query.id }, async (err, msg) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/friends/requests/get', (req, res) => {
    
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2618,12 +2667,33 @@ app.get('/api/msgs/add', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
     const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type, channel: req.query.channel })
-    msg.save(function (err) {
+    msg.save(function (err, msg) {
         if (err) {
             console.log(`Ошибка отправки сообщения`)
+            return res.json({ "status": "Error", id: '', content: '' })
+        } else {
+            const msgId = msg.id
+            console.log(`сообщение отправлено`)
+            return res.json({ "status": "OK", id: msgId, content: '' })
+        }
+    })
+
+})
+
+app.get('/api/msgs/reactions/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const reaction = new MsgReactionModel({ msg: req.query.id, content: req.query.content })
+    reaction.save(function (err, reaction) {
+        if (err) {
+            console.log(`Ошибка сохранения реакции`)
             return res.json({ "status": "Error" })
         } else {
-            console.log(`сообщение отправлено`)
+            console.log(`реакция сохранена`)
             return res.json({ "status": "OK" })
         }
     })
@@ -2763,7 +2833,7 @@ app.post('/api/msgs/add', msgsUpload.any(), async (req, res) => {
     const msg = new MsgModel({ user: req.query.user, friend: req.query.friend, content: req.query.content, type: req.query.type })
     msg.save(function (err, newMsg) {
         if (err) {
-            return res.json({ "status": "Error" })
+            return res.json({ "status": "Error", id: '', content: '' })
         } else {
             const generatedId = newMsg._id
             const mime = req.query.ext
@@ -2773,7 +2843,7 @@ app.post('/api/msgs/add', msgsUpload.any(), async (req, res) => {
                 content: mime
             }, (err, msg) => {
                 if (err) {
-                    return res.json({ status: 'Error' })        
+                    return res.json({ status: 'Error', id: '', content: '' })        
                 }
                 const pathSeparator = path.sep
                 const pathToDir = `${__dirname}${pathSeparator}`
@@ -2814,6 +2884,21 @@ app.get('/api/msgs/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
     await MsgModel.deleteMany({  })
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
+
+app.get('/api/msgs/reactions/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await MsgReactionModel.deleteMany({  })
 
     return res.json({
         'status': 'OK'
