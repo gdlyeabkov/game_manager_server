@@ -506,6 +506,14 @@ const UserNickNameSchema = new mongoose.Schema({
 
 const UserNickNameModel = mongoose.model('UserNickNameModel', UserNickNameSchema)
 
+const FriendAliasSchema = new mongoose.Schema({
+    user: String,
+    alias: String,
+    friend: String
+})
+
+const FriendAliasModel = mongoose.model('FriendAliasModel', FriendAliasSchema)
+
 const ExperimentSchema = new mongoose.Schema({
     title: String,
     desc: String,
@@ -656,7 +664,11 @@ const FriendRequestModel = mongoose.model('FriendRequestModel', FriendRequestSch
 
 const FriendSchema = new mongoose.Schema({
     user: String,
-    friend: String
+    friend: String,
+    alias: {
+        type: String,
+        default: ''
+    }
 }, { collection : 'myfriends' })
     
 const FriendModel = mongoose.model('FriendModel', FriendSchema)
@@ -1047,6 +1059,25 @@ app.get('/api/users/nicks/all', (req, res) => {
             return res.json({ nicks: [], "status": "Error" })
         } else {
             return res.json({ nicks: nicks, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/friends/aliases/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = FriendAliasModel.find({  })
+    
+    query.exec((err, aliases) => {
+        if (err) {
+            return res.json({ aliases: [], "status": "Error" })
+        } else {
+            return res.json({ aliases: aliases, status: 'OK' })
         }
     })
     
@@ -2317,6 +2348,25 @@ app.get('/api/points/items/relations/add', async (req, res) => {
 
 })
 
+app.get('/api/friend/alias/set', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    FriendModel.updateOne({ _id: req.query.id }, 
+    { 
+        alias: req.query.alias
+    }, (err, friend) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        }  
+        return res.json({ "status": "OK" })
+    })
+
+})
+
 app.get('/api/user/games/last/set', async (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2450,6 +2500,24 @@ app.get('/api/groups/add', (req, res) => {
                     return res.json({ "status": "OK" })
                 }   
             })
+        }
+    })
+
+})
+
+app.get('/api/friend/aliases/add', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const alias = new FriendAliasModel({ user: req.query.id, alias: req.query.alias, friend: req.query.friend })
+    alias.save(function (err, alias) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
         }
     })
 
@@ -2913,6 +2981,21 @@ app.get('/api/friends/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
     await FriendModel.deleteMany({  })
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
+
+app.get('/api/friends/aliases/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await FriendAliasModel.deleteMany({  })
 
     return res.json({
         'status': 'OK'
