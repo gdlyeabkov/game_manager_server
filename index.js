@@ -499,6 +499,13 @@ const UserSchema = new mongoose.Schema({
     
 const UserModel = mongoose.model('UserModel', UserSchema)
 
+const UserNickNameSchema = new mongoose.Schema({
+    user: String,
+    nick: String
+})
+
+const UserNickNameModel = mongoose.model('UserNickNameModel', UserNickNameSchema)
+
 const ExperimentSchema = new mongoose.Schema({
     title: String,
     desc: String,
@@ -1021,6 +1028,25 @@ app.get('/api/groups/all', (req, res) => {
             return res.json({ groups: [], "status": "Error" })
         } else {
             return res.json({ groups: groups, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/users/nicks/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = UserNickNameModel.find({  })
+    
+    query.exec((err, nicks) => {
+        if (err) {
+            return res.json({ nicks: [], "status": "Error" })
+        } else {
+            return res.json({ nicks: nicks, status: 'OK' })
         }
     })
     
@@ -2429,6 +2455,24 @@ app.get('/api/groups/add', (req, res) => {
 
 })
 
+app.get('/api/user/nicks/add', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const nickName = new UserNickNameModel({ user: req.query.id, nick: req.query.nick })
+    nickName.save(function (err, nick) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.get('/api/talks/roles/create', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2869,6 +2913,21 @@ app.get('/api/friends/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
     await FriendModel.deleteMany({  })
+
+    return res.json({
+        'status': 'OK'
+    })
+
+})
+
+app.get('/api/users/nicks/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    await UserNickNameModel.deleteMany({  })
 
     return res.json({
         'status': 'OK'
