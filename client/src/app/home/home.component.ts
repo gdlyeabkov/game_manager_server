@@ -16,8 +16,12 @@ export class HomeComponent implements OnInit {
       (value: any) => {
         const talkParam = value['talk']
         const isTalkParamExists = talkParam !== undefined
+        const friendParam = value['friend']
+        const isFriendParamExists = friendParam !== undefined
         if (isTalkParamExists) {
           this.router.navigate(['groups/attach'], { queryParams: { talk: talkParam } })
+        } else if (isFriendParamExists) {
+          this.router.navigate(['friends/requests/add'], { queryParams: { friend: friendParam } })
         }
       }
     )

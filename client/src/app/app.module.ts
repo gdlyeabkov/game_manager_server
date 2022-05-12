@@ -14,6 +14,7 @@ import { CreateExperimentComponent } from './create-experiment/create-experiment
 import { CreateIconComponent } from './create-icon/create-icon.component';
 import { CreatePointsStoreItemComponent } from './create-points-store-item/create-points-store-item.component';
 import { GroupAttacherComponent } from './group-attacher/group-attacher.component';
+import { FriendRequestAddComponent } from './friend-request-add/friend-request-add.component';
 
 @NgModule({
   declarations: [
@@ -26,7 +27,8 @@ import { GroupAttacherComponent } from './group-attacher/group-attacher.componen
     CreateExperimentComponent,
     CreateIconComponent,
     CreatePointsStoreItemComponent,
-    GroupAttacherComponent
+    GroupAttacherComponent,
+    FriendRequestAddComponent
   ],
   imports: [
     BrowserModule,

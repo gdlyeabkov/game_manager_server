@@ -2266,12 +2266,25 @@ app.get('/api/friends/requests/add', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const friendRequest = new FriendRequestModel({ user: req.query.id, friend: req.query.friend })
-    friendRequest.save(function (err) {
+    let query = FriendRequestModel.find({ user: req.query.id, friend: req.query.friend })
+    query.exec((err, requests) => {
         if (err) {
-            return res.json({ "status": "Error" })
+            return res.json({ "status": "Error", 'requests': friendRequests })
         } else {
-            return res.json({ "status": "OK" })
+            let countRequests = requests.length
+            const isNotHaveRequests = countRequests <= 0
+            if (isNotHaveRequests) {
+                const friendRequest = new FriendRequestModel({ user: req.query.id, friend: req.query.friend })
+                friendRequest.save(function (err) {
+                    if (err) {
+                        return res.json({ "status": "Error" })
+                    } else {
+                        return res.json({ "status": "OK" })
+                    }
+                })
+            } else {
+                return res.json({ "status": "Error" })
+            }
         }
     })
 
