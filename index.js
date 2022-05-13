@@ -76,6 +76,10 @@ io.on('connection', client => {
         console.log(`user update talk: ${msg}`)
         io.sockets.emit('friend_update_talk', msg)
     })
+    client.on('user_add_reaction', (msg) => {
+        console.log(`user add reaction: ${msg}`)
+        io.sockets.emit('friend_add_reaction', msg)
+    })
 })
 
 const bcrypt = require('bcrypt')
