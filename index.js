@@ -72,6 +72,10 @@ io.on('connection', client => {
         console.log(`user send comment: ${msg}`)
         io.sockets.emit('user_receive_comment', msg)
     })
+    client.on('user_update_talk', (msg) => {
+        console.log(`user update talk: ${msg}`)
+        io.sockets.emit('friend_update_talk', msg)
+    })
 })
 
 const bcrypt = require('bcrypt')
@@ -3936,6 +3940,7 @@ app.get('/api/talks/channels/create', async (req, res) => {
                 status: 'Error'
             })
         }
+        
         return res.json({
             status: 'OK'
         })
