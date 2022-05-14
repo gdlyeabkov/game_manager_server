@@ -1,6 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth.service';
+
+import * as jwt from 'jsonwebtoken'
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-home',
@@ -9,7 +13,9 @@ import { Router } from '@angular/router';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(private route: ActivatedRoute, private router:Router) { }
+  isAuth:boolean = false
+
+  constructor(private route: ActivatedRoute, private router:Router, private http: HttpClient) { }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(
@@ -25,6 +31,10 @@ export class HomeComponent implements OnInit {
         }
       }
     )
+  }
+
+  toggleAuthEmitHandler (isAdmin: boolean) {
+    this.isAuth = isAdmin
   }
 
 }

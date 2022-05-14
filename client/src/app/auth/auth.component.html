@@ -1,0 +1,76 @@
+<div
+    *ngIf="isAdminsExists; else registerBlock"
+    class="d-flex justify-content flex-column align-items-center"
+>
+    <p>
+       Войти 
+    </p>
+    <input
+        placeholder="Email"
+        type="email"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="email"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <input
+        placeholder="Пароль"
+        type="password"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="password"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <p
+        *ngIf="isErrors"
+        class="errors"
+    >
+        Вы неправильно ввели E-mail или пароль
+    </p>
+    <button
+        class="btn btn-primary"
+        (click)="checkUser()"
+    >
+        Войти
+    </button>
+</div>
+<ng-template
+    #registerBlock
+>
+    <div class="d-flex justify-content flex-column align-items-center">
+        <p>
+        Зарегестрироваться 
+        </p>
+        <input
+            placeholder="Email"
+            type="email"
+            class="m-2 w-25 form-control"
+            [(ngModel)]="email"
+            [ngModelOptions]="{standalone:true}"
+        />
+        <input
+            placeholder="Пароль"
+            type="password"
+            class="m-2 w-25 form-control"
+            [(ngModel)]="password"
+            [ngModelOptions]="{standalone:true}"
+        />
+        <input
+            placeholder="Подтвердите пароль"
+            type="password"
+            class="m-2 w-25 form-control"
+            [(ngModel)]="confirmPassword"
+            [ngModelOptions]="{standalone:true}"
+        />
+        <p
+            *ngIf="isErrors"
+            class="errors"
+        >
+            Вы неправильно ввели E-mail или пароль
+        </p>
+        <button
+            class="btn btn-primary"
+            (click)="createUser()"
+        >
+            Зарегестрироваться
+        </button>
+    </div>
+</ng-template>

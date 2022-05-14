@@ -14,6 +14,7 @@ export class CreateGameComponent implements OnInit {
   platform:string = 'Любая'
   price:number = 99
   isPriceDisabled:boolean = true
+  tags: Array<GameTagCheckBoxData> = []
 
   @ViewChild('form') form: ElementRef<HTMLFormElement>|null = null;
   @ViewChild('gameUrl') gameUrl:ElementRef<HTMLInputElement>|null = null
@@ -24,6 +25,7 @@ export class CreateGameComponent implements OnInit {
   constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
+    this.getTags()
   }
 
   createGame (currentForm:HTMLFormElement) {
@@ -122,6 +124,55 @@ export class CreateGameComponent implements OnInit {
       gamePrice = 0
     }
     return gamePrice
+  }
+
+  getTags () {
+    this.http.get(
+      `http://localhost:4000/api/games/tags/all`
+    ).subscribe(
+      (value: any) => {
+        const status = value['status'];
+        const isOkStatus = status === 'OK';
+        if (isOkStatus) {
+          const totalTags = value['tags'];
+          for (let tag of totalTags) {
+            this.tags.push(new GameTagCheckBoxData(tag['_id'], tag['title']))
+          }
+          // this.tags = totalTags
+        }
+      }
+    );
+  }
+
+  toggleTag (event: Event, tag: GameTagCheckBoxData) {
+    const checkbox:HTMLInputElement|any = event.target
+    const isChecked = checkbox.checked
+    tag.isChecked = isChecked
+  }
+
+  getTagRelations () {
+    const tagRelations = this.tags.flatMap((tag) => tag.isChecked)
+    const rawTagRelations = tagRelations.join(',')
+    return rawTagRelations
+  }
+
+}
+
+interface GameTagModel {
+  _id: string
+  title: string
+}
+
+class GameTagCheckBoxData {
+  
+  _id: string
+  title: string
+  isChecked: boolean
+
+  constructor (_id: string, title: string) {
+    this._id = _id
+    this.title = title
+    this.isChecked = true
   }
 
 }

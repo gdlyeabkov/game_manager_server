@@ -3,7 +3,7 @@
     ngNoForm
     #form
     method="POST"
-    action="{{'api/games/create?name=' + gameName + '&url=' + gameUrl + '&image=' + gameImg + '&platform=' + platform + '&price=' + getPrice()}}"
+    action="{{'api/games/create?name=' + gameName + '&url=' + gameUrl + '&image=' + gameImg + '&platform=' + platform + '&price=' + getPrice() + '&tags=' + getTagRelations()}}"
     class="d-flex justify-content flex-column align-items-center"
     enctype="multipart/form-data"
 >
@@ -102,6 +102,26 @@
         [(ngModel)]="price"
         [ngModelOptions]="{standalone:true}"
     />
+    <div
+        *ngFor="let tag of tags"
+        class="form-check m-3"
+    >
+        <input
+            checked
+            id="free"
+            type="checkbox"
+            class="form-check-input"
+            (change)="toggleTag($event, tag)"
+        />
+        <label
+            class="form-check-label"
+            for="free"
+        >
+            {{
+                tag['title']
+            }}
+        </label>
+    </div>
     <button
         class="btn btn-primary"
         (click)="uploadFiles()"

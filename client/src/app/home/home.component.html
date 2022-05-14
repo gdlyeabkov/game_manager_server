@@ -1,8 +1,19 @@
-<app-header></app-header>
-<div>
-    <p
-        class="text-center"
-    >
-        CRM игрового менеджера
-    </p>
+<div
+    *ngIf="isAuth; else auth"
+>
+    <app-header></app-header>
+    <div>
+        <p
+            class="text-center"
+        >
+            CRM игрового менеджера
+        </p>
+    </div>
 </div>
+<ng-template
+    #auth
+>
+    <app-auth
+        (toggleAuthEmit)="toggleAuthEmitHandler($event)"
+    ></app-auth>
+</ng-template>

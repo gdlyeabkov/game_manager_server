@@ -502,7 +502,8 @@ const UserSchema = new mongoose.Schema({
     lastGame: {
         type: String,
         default: 'mockId'
-    }
+    },
+    role: String
 }, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
@@ -845,6 +846,19 @@ const TalkRoleRelationSchema = new mongoose.Schema({
 
 const TalkRoleRelationModel = mongoose.model('TalkRoleRelationModel', TalkRoleRelationSchema)
 
+const GameTagSchema = new mongoose.Schema({
+    title: String
+}, { collection : 'my_game_tags' })
+    
+const GameTagModel = mongoose.model('GameTagModel', GameTagSchema)
+
+const GameTagRelationSchema = new mongoose.Schema({
+    game: String,
+    tag: String
+}, { collection : 'my_game_tag_relations' })
+    
+const GameTagRelationModel = mongoose.model('GameTagRelationModel', GameTagRelationSchema)
+
 app.get('/api/games/get', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1053,6 +1067,44 @@ app.get('/api/groups/all', (req, res) => {
     
 })
 
+app.get('/api/games/tags/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GameTagModel.find({  })
+    
+    query.exec((err, tags) => {
+        if (err) {
+            return res.json({ tags: [], "status": "Error" })
+        } else {
+            return res.json({ tags: tags, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/tags/relations/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GameTagRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/users/nicks/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1213,6 +1265,40 @@ app.get('/api/points/items/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await PointsStoreItemModel.deleteMany((err, items) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/tags/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GameTagModel.deleteMany((err, tags) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/tags/relations/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GameTagRelationModel.deleteMany((err, relations) => {
         if (err) {
             return res.json({ status: 'Error' })
         } else {
@@ -2236,7 +2322,7 @@ app.get('/api/users/create', (req, res) => {
                 let encodedPassword = "#"
                 const salt = bcrypt.genSalt(saltRounds)
                 encodedPassword = bcrypt.hashSync(req.query.password, saltRounds)
-                const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Информация отсутствует.'  })
+                const user = new UserModel({ login: req.query.login, password: encodedPassword, name: req.query.login, country: 'Россия', about: 'Информация отсутствует.', role: req.query.role  })
                 user.save(function (err) {
                     if (err) {
                         return res.json({
@@ -3785,8 +3871,26 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
     console.log('создаю игру')
 
     const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image, platform: req.query.platform, price: req.query.price })
-    game.save(function (err) {
-
+    game.save(function (err, generatedGame) {
+        const generatedGameId = generatedGame._id
+        const rawTagRelations = req.query.tags
+        const tagRelations = rawTagRelations.split(',')
+        let query = GameTagModel.find({  })
+        query.exec((err, tags) => {
+            let tagCursor = -1
+            for (let tagRelation of tagRelations) {
+                tagCursor++
+                const isAddRelation = tagRelation === 'true'
+                if (isAddRelation) {
+                    const currentTag = tags[tagCursor];
+                    const currentTagId = currentTag._id
+                    const tagRelation = new GameTagRelationModel({ tag: currentTagId, game: generatedGameId })
+                    tagRelation.save(function (err) {
+                        
+                    })
+                }
+            }
+        })
     })
     return await res.redirect('/')
 
@@ -3916,6 +4020,29 @@ app.get('/api/forums/create', async (req, res) => {
 
     const forum = new ForumModel({ title: req.query.title })
     forum.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/games/tags/create', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    console.log('создаю тег')
+
+    const tag = new GameTagModel({ title: req.query.title })
+    tag.save(function (err) {
         if (err) {
             return res.json({
                 status: 'Error'

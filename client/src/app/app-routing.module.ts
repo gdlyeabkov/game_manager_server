@@ -9,6 +9,8 @@ import { CreateIconComponent } from './create-icon/create-icon.component'
 import { CreatePointsStoreItemComponent } from './create-points-store-item/create-points-store-item.component'
 import { GroupAttacherComponent } from './group-attacher/group-attacher.component'
 import { FriendRequestAddComponent } from './friend-request-add/friend-request-add.component'
+import { CreateGameTagComponent } from './create-game-tag/create-game-tag.component'
+import { CreateUserComponent } from './create-user/create-user.component'
 import {  HomeComponent } from './home/home.component'
 
 const routes: Routes = [
@@ -43,6 +45,14 @@ const routes: Routes = [
   {
     'path': 'friends/requests/add',
     'component': FriendRequestAddComponent
+  },
+  {
+    'path': 'games/tags/add',
+    'component': CreateGameTagComponent
+  },
+  {
+    'path': 'users/add',
+    'component': CreateUserComponent
   },
   {
     'path': '**',

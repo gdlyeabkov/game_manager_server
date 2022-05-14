@@ -15,6 +15,9 @@ import { CreateIconComponent } from './create-icon/create-icon.component';
 import { CreatePointsStoreItemComponent } from './create-points-store-item/create-points-store-item.component';
 import { GroupAttacherComponent } from './group-attacher/group-attacher.component';
 import { FriendRequestAddComponent } from './friend-request-add/friend-request-add.component';
+import { CreateGameTagComponent } from './create-game-tag/create-game-tag.component';
+import { AuthComponent } from './auth/auth.component';
+import { CreateUserComponent } from './create-user/create-user.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +31,10 @@ import { FriendRequestAddComponent } from './friend-request-add/friend-request-a
     CreateIconComponent,
     CreatePointsStoreItemComponent,
     GroupAttacherComponent,
-    FriendRequestAddComponent
+    FriendRequestAddComponent,
+    CreateGameTagComponent,
+    AuthComponent,
+    CreateUserComponent
   ],
   imports: [
     BrowserModule,

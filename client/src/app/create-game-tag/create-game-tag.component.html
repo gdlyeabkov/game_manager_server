@@ -1,0 +1,18 @@
+<app-header></app-header>
+<form
+    class="m-auto w-25 d-flex flex-column align-items-center"
+>
+    <input
+        placeholder="Название тега"
+        type="text"
+        class="m-2 form-control"
+        [(ngModel)]="title"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <button
+        class="m-2 btn btn-primary"
+        (click)="addTag()"
+    >
+        Создать
+    </button>
+</form>

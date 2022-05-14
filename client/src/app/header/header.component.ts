@@ -37,4 +37,12 @@ export class HeaderComponent implements OnInit {
     this.route.navigate(['points/items/add'])
   }
 
+  addTag () {
+    this.route.navigate(['games/tags/add'])
+  }
+
+  addAdmin () {
+    this.route.navigate(['users/add'])
+  }
+
 }
