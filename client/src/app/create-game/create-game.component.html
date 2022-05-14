@@ -3,7 +3,7 @@
     ngNoForm
     #form
     method="POST"
-    action="{{'api/games/create?name=' + gameName + '&url=' + gameUrl + '&image=' + gameImg + '&platform=' + platform + '&price=' + getPrice() + '&tags=' + getTagRelations()}}"
+    action="{{'api/games/create?name=' + gameName + '&platform=' + platform + '&price=' + getPrice() + '&tags=' + getTagRelations() + '&type=' + type }}"
     class="d-flex justify-content flex-column align-items-center"
     enctype="multipart/form-data"
 >
@@ -122,6 +122,38 @@
             }}
         </label>
     </div>
+    <select
+        class="m-2 form-select w-25"
+        aria-label="Default select example"
+        #typeSelector
+        (change)="onChangeType()"
+    >
+        <option
+            value="Продукты в раннем доступе"
+        >
+            Продукты в раннем доступе
+        </option>    
+        <option
+            value="Программы"
+        >
+            Программы
+        </option>
+        <option
+            value="Видео"
+        >
+            Видео
+        </option>
+        <option
+            value="Cаундтреки"
+        >
+            Cаундтреки
+        </option>
+        <option
+            value="Невыпущенные продукты"
+        >
+            Невыпущенные продукты
+        </option>
+    </select>
     <button
         class="btn btn-primary"
         (click)="uploadFiles()"

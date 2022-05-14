@@ -15,12 +15,14 @@ export class CreateGameComponent implements OnInit {
   price:number = 99
   isPriceDisabled:boolean = true
   tags: Array<GameTagCheckBoxData> = []
+  type: string = 'Продукты в раннем доступе'
 
   @ViewChild('form') form: ElementRef<HTMLFormElement>|null = null;
   @ViewChild('gameUrl') gameUrl:ElementRef<HTMLInputElement>|null = null
   @ViewChild('gameImg') gameImg:ElementRef<HTMLInputElement>|null = null
   @ViewChild('platformSelector') platformSelector:ElementRef<HTMLSelectElement>|null = null
   @ViewChild('priceRef') priceRef:ElementRef<HTMLInputElement>|null = null
+  @ViewChild('typeSelector') typeSelector:ElementRef<HTMLSelectElement>|null = null
 
   constructor(private http: HttpClient) { }
 
@@ -104,6 +106,15 @@ export class CreateGameComponent implements OnInit {
     const selectedPlatformItem = platformBoxItems[selectedPlatformIndex]
     const selectedPlatform = selectedPlatformItem.value
     this.platform = selectedPlatform
+  }
+
+  onChangeType () {
+    const typeBox = this.typeSelector!.nativeElement
+    const selectedTypeIndex = typeBox.selectedIndex
+    const typeBoxItems = typeBox.options
+    const selectedTypeItem = typeBoxItems[selectedTypeIndex]
+    const selectedType = selectedTypeItem.value
+    this.type = selectedType
   }
 
   disablePriceField () {

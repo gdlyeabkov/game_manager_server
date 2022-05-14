@@ -763,8 +763,6 @@ const BlackListRelationModel = mongoose.model('BlackListRelationModel', BlackLis
 
 const GameSchema = new mongoose.Schema({
     name: String,
-    url: String,
-    image: String,
     platform: String,
     price: Number,
     users: {
@@ -778,7 +776,8 @@ const GameSchema = new mongoose.Schema({
     likes: {
         type: Number,
         default: 0
-    }
+    },
+    type: String
 }, { collection : 'my_digital_distributtion_games' })
     
 const GameModel = mongoose.model('GameModel', GameSchema)
@@ -3870,7 +3869,7 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
     console.log('создаю игру')
 
-    const game = new GameModel({ name: req.query.name, url: req.query.url, image: req.query.image, platform: req.query.platform, price: req.query.price })
+    const game = new GameModel({ name: req.query.name, platform: req.query.platform, price: req.query.price, type: req.query.type })
     game.save(function (err, generatedGame) {
         const generatedGameId = generatedGame._id
         const rawTagRelations = req.query.tags
