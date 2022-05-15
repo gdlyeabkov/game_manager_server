@@ -777,7 +777,8 @@ const GameSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    type: String
+    type: String,
+    genre: String
 }, { collection : 'my_digital_distributtion_games' })
     
 const GameModel = mongoose.model('GameModel', GameSchema)
@@ -807,10 +808,29 @@ const GroupRelationModel = mongoose.model('GroupRelationModel', GroupRelationSch
 
 const GameRelationSchema = new mongoose.Schema({
     game: String,
-    user: String
+    user: String,
+    hours: {
+        type: Number,
+        default: 0
+    },
+    lastGame: {
+        type: Date,
+        default: Date.now()
+    }
 }, { collection : 'my_game_relations' })
 
 const GameRelationModel = mongoose.model('GameRelationModel', GameRelationSchema)
+
+const GameSessionSchema = new mongoose.Schema({
+    game: String,
+    user: String,
+    date: {
+        type: Date,
+        default: Date.now()
+    }
+}, { collection : 'my_game_sessions' })
+
+const GameSessionModel = mongoose.model('GameSessionModel', GameSessionSchema)
 
 const GroupRequestSchema = new mongoose.Schema({
     group: String,
@@ -1740,6 +1760,23 @@ app.get('/api/games/relations/delete', async (req, res) => {
     
 })
 
+app.get('/api/games/sessions/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GameSessionModel.deleteMany((err, sessions) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/experiments/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1860,6 +1897,25 @@ app.get('/api/games/relations/all', (req, res) => {
             return res.json({ relations: [], "status": "Error" })
         } else {
             return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/sessions/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GameSessionModel.find({  })
+    
+    query.exec((err, sessions) => {
+        if (err) {
+            return res.json({ sessions: [], "status": "Error" })
+        } else {
+            return res.json({ sessions: sessions, status: 'OK' })
         }
     })
     
@@ -2514,6 +2570,24 @@ app.get('/api/games/relations/add', async (req, res) => {
                 }  
                 return res.json({ "status": "OK" })
             })
+        }
+    })
+
+})
+
+app.get('/api/games/sessions/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const gameSession = new GameSessionModel({ game: req.query.id, user: req.query.user })
+    gameSession.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
         }
     })
 
@@ -3869,7 +3943,7 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
     console.log('создаю игру')
 
-    const game = new GameModel({ name: req.query.name, platform: req.query.platform, price: req.query.price, type: req.query.type })
+    const game = new GameModel({ name: req.query.name, platform: req.query.platform, price: req.query.price, type: req.query.type, genre: req.query.genre })
     game.save(function (err, generatedGame) {
         const generatedGameId = generatedGame._id
         const rawTagRelations = req.query.tags

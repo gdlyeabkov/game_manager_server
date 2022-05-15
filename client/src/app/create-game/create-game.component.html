@@ -3,7 +3,7 @@
     ngNoForm
     #form
     method="POST"
-    action="{{'api/games/create?name=' + gameName + '&platform=' + platform + '&price=' + getPrice() + '&tags=' + getTagRelations() + '&type=' + type }}"
+    action="{{'api/games/create?name=' + gameName + '&platform=' + platform + '&price=' + getPrice() + '&tags=' + getTagRelations() + '&type=' + type + '&genre=' + genre }}"
     class="d-flex justify-content flex-column align-items-center"
     enctype="multipart/form-data"
 >
@@ -152,6 +152,38 @@
             value="Невыпущенные продукты"
         >
             Невыпущенные продукты
+        </option>
+    </select>
+    <select
+        class="m-2 form-select w-25"
+        aria-label="Default select example"
+        #genreSelector
+        (change)="onChangeGenre()"
+    >
+        <option
+            value="Инди"
+        >
+            Инди
+        </option>    
+        <option
+            value="Экшен"
+        >
+            Экшен
+        </option>
+        <option
+            value="Приключение"
+        >
+            Приключение
+        </option>
+        <option
+            value="Казуальная игра"
+        >
+            Казуальная игра
+        </option>
+        <option
+            value="Симулятор"
+        >
+            Симулятор
         </option>
     </select>
     <button

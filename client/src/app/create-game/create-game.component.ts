@@ -16,6 +16,7 @@ export class CreateGameComponent implements OnInit {
   isPriceDisabled:boolean = true
   tags: Array<GameTagCheckBoxData> = []
   type: string = 'Продукты в раннем доступе'
+  genre: string = 'Инди'
 
   @ViewChild('form') form: ElementRef<HTMLFormElement>|null = null;
   @ViewChild('gameUrl') gameUrl:ElementRef<HTMLInputElement>|null = null
@@ -23,6 +24,7 @@ export class CreateGameComponent implements OnInit {
   @ViewChild('platformSelector') platformSelector:ElementRef<HTMLSelectElement>|null = null
   @ViewChild('priceRef') priceRef:ElementRef<HTMLInputElement>|null = null
   @ViewChild('typeSelector') typeSelector:ElementRef<HTMLSelectElement>|null = null
+  @ViewChild('genreSelector') genreSelector:ElementRef<HTMLSelectElement>|null = null
 
   constructor(private http: HttpClient) { }
 
@@ -165,6 +167,15 @@ export class CreateGameComponent implements OnInit {
     const tagRelations = this.tags.flatMap((tag) => tag.isChecked)
     const rawTagRelations = tagRelations.join(',')
     return rawTagRelations
+  }
+
+  onChangeGenre () {
+    const genreBox = this.genreSelector!.nativeElement
+    const selectedGenreIndex = genreBox.selectedIndex
+    const genreBoxItems = genreBox.options
+    const selectedGenreItem = genreBoxItems[selectedGenreIndex]
+    const selectedGenre = selectedGenreItem.value
+    this.genre = selectedGenre
   }
 
 }
