@@ -566,10 +566,33 @@ const ReviewSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
-    }
+    },
+    advices: {
+        type: Number,
+        default: 0
+    },
+    funs: {
+        type: Number,
+        default: 0
+    },
+    isCommentsEnabled: Boolean,
+    visibility: String,
+    isFreeProduct: Boolean
 }, { collection : 'myreviews' })
     
 const ReviewModel = mongoose.model('ReviewModel', ReviewSchema)
+
+const ReviewCommentSchema = new mongoose.Schema({
+    user: String,
+    review: String,
+    content: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_review_comments' })
+    
+const ReviewCommentModel = mongoose.model('ReviewCommentModel', ReviewCommentSchema)
 
 const ManualSchema = new mongoose.Schema({
     title: String,
@@ -1346,6 +1369,25 @@ app.get('/api/reviews/all', (req, res) => {
     
 })
 
+app.get('/api/reviews/comments/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ReviewCommentModel.find({  })
+    
+    query.exec((err, comments) => {
+        if (err) {
+            return res.json({ comments: [], "status": "Error" })
+        } else {
+            return res.json({ comments: comments, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/illustrations/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1802,6 +1844,23 @@ app.get('/api/reviews/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await ReviewModel.deleteMany((err, reviews) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/reviews/comments/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ReviewCommentModel.deleteMany((err, comments) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -3025,7 +3084,27 @@ app.get('/api/reviews/add', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const review = new ReviewModel({ desc: req.query.desc, game: req.query.game, hours: req.query.hours, user: req.query.id })
+    const review = new ReviewModel({ desc: req.query.desc, game: req.query.game, hours: req.query.hours, user: req.query.id, isCommentsEnabled: req.query.comments, visibility: req.query.visibility, isFreeProduct: req.query.free })
+    review.save(function (err, generatedReview) {
+        if (err) {
+            console.log('создаю обзор ошибка')
+            return res.json({ "status": "Error" })
+        } else {
+            console.log('создаю обзор успешно')
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/reviews/comments/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const review = new ReviewCommentModel({ content: req.query.content, review: req.query.id, user: req.query.user })
     review.save(function (err, generatedReview) {
         if (err) {
             console.log('создаю обзор ошибка')
@@ -3751,6 +3830,56 @@ app.get('/api/users/amount/increase', async (req, res) => {
             { 
                 "$inc": { "amount": req.query.amount }
             }, (err, user) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/reviews/advices/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ReviewModel.findOne({'_id': req.query.id }, function(err, review) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            ReviewModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "advices": 1 }
+            }, (err, review) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/reviews/funs/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ReviewModel.findOne({'_id': req.query.id }, function(err, review) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            ReviewModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "funs": 1 }
+            }, (err, review) => {
                 if (err) {
                     return res.json({ "status": "Error" })
                 }  
