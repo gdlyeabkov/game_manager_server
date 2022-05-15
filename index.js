@@ -604,7 +604,16 @@ const ManualSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
-    }
+    },
+    game: String,
+    likes: {
+        type: Number,
+        default: 0
+    },
+    dislikes: {
+        type: Number,
+        default: 0
+    },
 }, { collection : 'mymanuals' })
     
 const ManualModel = mongoose.model('ManualModel', ManualSchema)
@@ -3060,7 +3069,7 @@ app.post('/api/manuals/add', manualsUpload.any(), async (req, res) => {
     
     console.log(`id: ${req.query.id},title: ${req.query.title},lang: ${req.query.lang},categories: ${req.query.categories},isDrm: ${req.query.drm}`)
 
-    const manual = new ManualModel({ user: req.query.id, desc: req.query.desc, title: req.query.title, lang: req.query.lang, categories: req.query.categories, isDrm: req.query.drm })
+    const manual = new ManualModel({ user: req.query.id, desc: req.query.desc, title: req.query.title, lang: req.query.lang, categories: req.query.categories, isDrm: req.query.drm, game: req.query.game })
     manual.save(function (err, generatedManual) {
         
         const generatedId = generatedManual._id
@@ -3880,6 +3889,56 @@ app.get('/api/reviews/funs/increase', async (req, res) => {
             { 
                 "$inc": { "funs": 1 }
             }, (err, review) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/manuals/likes/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ManualModel.findOne({'_id': req.query.id }, function(err, manual) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            ManualModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "likes": 1 }
+            }, (err, manual) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/manuals/dislikes/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ManualModel.findOne({'_id': req.query.id }, function(err, manual) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            ManualModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "dislikes": 1 }
+            }, (err, manual) => {
                 if (err) {
                     return res.json({ "status": "Error" })
                 }  
