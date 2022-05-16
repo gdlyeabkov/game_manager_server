@@ -658,6 +658,13 @@ const ManualSchema = new mongoose.Schema({
     
 const ManualModel = mongoose.model('ManualModel', ManualSchema)
 
+const ManualVisitSchema = new mongoose.Schema({
+    manual: String,
+    user: String
+}, { collection : 'my_manual_visits' })
+
+const ManualVisitModel = mongoose.model('ManualVisitModel', ManualVisitSchema)
+
 const IllustrationSchema = new mongoose.Schema({
     title: String,
     desc: String,
@@ -1581,6 +1588,25 @@ app.get('/api/manuals/all', (req, res) => {
     
 })
 
+app.get('/api/manuals/visits/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ManualVisitModel.find({  })
+    
+    query.exec((err, visits) => {
+        if (err) {
+            return res.json({ visits: [], "status": "Error" })
+        } else {
+            return res.json({ visits: visits, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/icons/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1766,6 +1792,23 @@ app.get('/api/manuals/delete', async (req, res) => {
     
 })
 
+app.get('/api/manuals/visits/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ManualVisitModel.deleteMany((err, visits) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/icons/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1893,6 +1936,23 @@ app.get('/api/talks/roles/relations/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await TalkRoleRelationModel.deleteMany((err, talks) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/relations/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GameRelationModel.deleteOne({ user: req.query.user, game: req.query.game }, (err, relation) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -3219,6 +3279,27 @@ app.get('/api/msgs/reactions/add', async (req, res) => {
 
 })
 
+app.get('/api/manuals/visits/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const visit = new ManualVisitModel({ manual: req.query.id, user: req.query.user })
+    visit.save(function (err, generatedVisit) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
 app.post('/api/manuals/add', manualsUpload.any(), async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -4218,6 +4299,31 @@ app.get('/api/manuals/dislikes/increase', async (req, res) => {
 
 })
 
+app.get('/api/manuals/favorites/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ManualModel.findOne({'_id': req.query.id }, function(err, manual) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            ManualModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "favorites": 1 }
+            }, (err, manual) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
 app.get('/api/games/stats/decrease', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -4536,7 +4642,22 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
 })
 
 app.get('/debug', (req, res) => {
-    return res
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    GameRelationModel.updateOne({ _id: req.query.id }, 
+        { 
+            "hours": req.query.hours
+        }, (err, relation) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        }  
+        return res.json({ "status": "OK" })
+    })
+
 })
 
 app.get('/api/forums/create', async (req, res) => {
