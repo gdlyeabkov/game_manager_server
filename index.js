@@ -594,6 +594,42 @@ const ReviewCommentSchema = new mongoose.Schema({
     
 const ReviewCommentModel = mongoose.model('ReviewCommentModel', ReviewCommentSchema)
 
+const ManualCommentSchema = new mongoose.Schema({
+    user: String,
+    manual: String,
+    content: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_manual_comments' })
+    
+const ManualCommentModel = mongoose.model('ManualCommentModel', ManualCommentSchema)
+
+const IllustrationCommentSchema = new mongoose.Schema({
+    user: String,
+    illustration: String,
+    content: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_illustration_comments' })
+    
+const IllustrationCommentModel = mongoose.model('IllustrationCommentModel', IllustrationCommentSchema)
+
+const ScreenShotCommentSchema = new mongoose.Schema({
+    user: String,
+    screenShot: String,
+    content: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_screenshot_comments' })
+    
+const ScreenShotCommentModel = mongoose.model('ScreenShotCommentModel', ScreenShotCommentSchema)
+
 const ManualSchema = new mongoose.Schema({
     title: String,
     desc: String,
@@ -614,6 +650,10 @@ const ManualSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    favorites: {
+        type: Number,
+        default: 0
+    }
 }, { collection : 'mymanuals' })
     
 const ManualModel = mongoose.model('ManualModel', ManualSchema)
@@ -626,7 +666,13 @@ const IllustrationSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
-    }
+    },
+    game: String,
+    likes: {
+        type: Number,
+        default: 0
+    },
+    visibility: String
 }, { collection : 'myillustrations' })
     
 const IllustrationModel = mongoose.model('IllustrationModel', IllustrationSchema)
@@ -638,7 +684,12 @@ const ScreenShotSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now
-    }
+    },
+    game: String,
+    likes: {
+        type: Number,
+        default: 0
+    },
 }, { collection : 'myscreenshots' })
     
 const ScreenShotModel = mongoose.model('ScreenShotModel', ScreenShotSchema)
@@ -1397,6 +1448,63 @@ app.get('/api/reviews/comments/all', (req, res) => {
     
 })
 
+app.get('/api/manuals/comments/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ManualCommentModel.find({  })
+    
+    query.exec((err, comments) => {
+        if (err) {
+            return res.json({ comments: [], "status": "Error" })
+        } else {
+            return res.json({ comments: comments, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/illustrations/comments/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = IllustrationCommentModel.find({  })
+    
+    query.exec((err, comments) => {
+        if (err) {
+            return res.json({ comments: [], "status": "Error" })
+        } else {
+            return res.json({ comments: comments, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/screenshots/comments/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ScreenShotCommentModel.find({  })
+    
+    query.exec((err, comments) => {
+        if (err) {
+            return res.json({ comments: [], "status": "Error" })
+        } else {
+            return res.json({ comments: comments, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/illustrations/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1862,6 +1970,40 @@ app.get('/api/reviews/delete', async (req, res) => {
     
 })
 
+app.get('/api/illustrations/comments/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await IllustrationCommentModel.deleteMany((err, comments) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/screenshots/comments/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ScreenShotCommentModel.deleteMany((err, comments) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/reviews/comments/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1870,6 +2012,23 @@ app.get('/api/reviews/comments/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await ReviewCommentModel.deleteMany((err, comments) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/manuals/comments/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ManualCommentModel.deleteMany((err, comments) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -3106,6 +3265,46 @@ app.get('/api/reviews/add', async (req, res) => {
 
 })
 
+app.get('/api/illustrations/comments/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const comment = new IllustrationCommentModel({ content: req.query.content, illustration: req.query.id, user: req.query.user })
+    comment.save(function (err, generatedComment) {
+        if (err) {
+            console.log('создаю комментарий ошибка')
+            return res.json({ "status": "Error" })
+        } else {
+            console.log('создаю комментарий успешно')
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/screenshots/comments/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const comment = new ScreenShotCommentModel({ content: req.query.content, screenShot: req.query.id, user: req.query.user })
+    comment.save(function (err, generatedComment) {
+        if (err) {
+            console.log('создаю комментарий ошибка')
+            return res.json({ "status": "Error" })
+        } else {
+            console.log('создаю комментарий успешно')
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.get('/api/reviews/comments/add', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3126,6 +3325,26 @@ app.get('/api/reviews/comments/add', async (req, res) => {
 
 })
 
+app.get('/api/manuals/comments/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const review = new ManualCommentModel({ content: req.query.content, manual: req.query.id, user: req.query.user })
+    review.save(function (err, generatedComment) {
+        if (err) {
+            console.log('создаю комментарий ошибка')
+            return res.json({ "status": "Error" })
+        } else {
+            console.log('создаю комментарий успешно')
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.post('/api/illustrations/add', illustrationsUpload.any(), async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3133,7 +3352,7 @@ app.post('/api/illustrations/add', illustrationsUpload.any(), async (req, res) =
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const illustration = new IllustrationModel({ user: req.query.id, desc: req.query.desc, title: req.query.title, isDrm: req.query.drm })
+    const illustration = new IllustrationModel({ user: req.query.id, desc: req.query.desc, title: req.query.title, isDrm: req.query.drm, game: req.query.game, visibility: req.query.visibility })
     illustration.save(function (err, generatedIllustration) {
         if (err) {
             console.log('создаю иллюстрацию ошибка')
@@ -3162,7 +3381,7 @@ app.post('/api/screenshots/add', screenShotsUpload.any(), async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const illustration = new ScreenShotModel({ user: req.query.id, desc: req.query.desc, isSpoiler: req.query.spoiler })
+    const illustration = new ScreenShotModel({ user: req.query.id, desc: req.query.desc, isSpoiler: req.query.spoiler, game: req.query.game })
     illustration.save(function (err, generatedScreenShot) {
         if (err) {
             console.log('создаю скриншот ошибка')
@@ -3914,6 +4133,56 @@ app.get('/api/manuals/likes/increase', async (req, res) => {
             { 
                 "$inc": { "likes": 1 }
             }, (err, manual) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/illustrations/likes/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = IllustrationModel.findOne({'_id': req.query.id }, function(err, illustration) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            IllustrationModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "likes": 1 }
+            }, (err, illustration) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }  
+                return res.json({ "status": "OK" })
+            })
+        }
+    })
+
+})
+
+app.get('/api/screenshots/likes/increase', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ScreenShotModel.findOne({'_id': req.query.id }, function(err, screenShot) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            ScreenShotModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "likes": 1 }
+            }, (err, screenShot) => {
                 if (err) {
                     return res.json({ "status": "Error" })
                 }  
