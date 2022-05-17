@@ -665,6 +665,13 @@ const ManualVisitSchema = new mongoose.Schema({
 
 const ManualVisitModel = mongoose.model('ManualVisitModel', ManualVisitSchema)
 
+const ManualFavoriteRelationSchema = new mongoose.Schema({
+    manual: String,
+    user: String
+}, { collection : 'my_manual_favorite_relations' })
+
+const ManualFavoriteRelationModel = mongoose.model('ManualFavoriteRelationModel', ManualFavoriteRelationSchema)
+
 const IllustrationSchema = new mongoose.Schema({
     title: String,
     desc: String,
@@ -1176,6 +1183,25 @@ app.get('/api/groups/all', (req, res) => {
     
 })
 
+app.get('/api/manuals/favorites/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ManualFavoriteRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/games/tags/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1374,6 +1400,23 @@ app.get('/api/points/items/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await PointsStoreItemModel.deleteMany((err, items) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/manuals/favorites/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ManualFavoriteRelationModel.deleteMany((err, relations) => {
         if (err) {
             return res.json({ status: 'Error' })
         } else {
@@ -1872,6 +1915,31 @@ app.get('/api/talks/channels/remove', async (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/manuals/favorites/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ManualFavoriteRelationModel.deleteOne({ manual: req.query.manual, user: req.query.user }, (err, relation) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            ManualModel.updateOne({ _id: req.query.manual }, 
+            { 
+                "$inc": { "favorites": -1 }
+            }, (err, manual) => {
+                if (err) {
+                    return res.json({ "status": "Error" })
+                }
+                return res.json({ status: 'OK' })
+            })
         }
     })
     
@@ -4316,8 +4384,18 @@ app.get('/api/manuals/favorites/increase', async (req, res) => {
             }, (err, manual) => {
                 if (err) {
                     return res.json({ "status": "Error" })
-                }  
-                return res.json({ "status": "OK" })
+                }
+                const relation = new ManualFavoriteRelationModel({ manual: req.query.id, user: req.query.user })
+                relation.save(function (err, relation) {
+                    if (err) {
+                        return res.json({
+                            status: 'Error'
+                        })
+                    }
+                    return res.json({
+                        status: 'OK'
+                    })
+                })
             })
         }
     })
