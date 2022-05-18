@@ -93,9 +93,13 @@ const multer  = require('multer')
 
 var transporter = nodemailer.createTransport({
     service: 'Gmail',
+    // auth: {
+    //     user: process.env.MAIL_LOGIN,
+    //     pass: process.env.MAIL_PASSWORD
+    // }
     auth: {
-        user: 'gdlyeabkov@gmail.com',
-        pass: 'reversepassword'
+        user: 'glebdyakov2000@gmail.com',
+        pass: 'ttolpqpdzbigrkhz'
     }
 })
 
@@ -503,7 +507,11 @@ const UserSchema = new mongoose.Schema({
         type: String,
         default: 'mockId'
     },
-    role: String
+    role: String,
+    isNotificationsStartYearlyDiscount: {
+        type: Boolean,
+        default: true
+    }
 }, { collection : 'mygamers' })
     
 const UserModel = mongoose.model('UserModel', UserSchema)
@@ -4148,12 +4156,18 @@ app.get('/api/user/delete', async (req, res) => {
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
-      
-    await UserModel.deleteOne({ _id: req.query.id }, (err, data) => {
+    
+    await UserModel.deleteOne({ _id: req.query.id }, async (err, data) => {
         if (err) {
             return res.json({ status: 'Error' })
         }
-        return res.json({ status: 'OK' })
+        await FriendModel.deleteMany({ $or: [{ user: req.query.id }, { friend: req.query.id }] }, (err, relations) => {
+            if (err) {
+                return res.json({ status: 'Error' })
+            } else {
+                return res.json({ status: 'OK' })
+            }
+        })
     })
 
 })
@@ -4719,6 +4733,39 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
 
 })
 
+app.get('/api/users/notify', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let query = UserModel.find({ })
+    query.exec((err, users) => {
+        if(err){
+            return res.json({ "status": "Error" })
+        }
+        users.map((user) => {
+            const isCanNotify = user.isNotificationsStartYearlyDiscount
+            if (isCanNotify) {
+                let mailOptions = {
+                    from: `"${'gdlyeabkov'}" <${"gdlyeabkov"}>`,
+                    to: `${user.login}`,
+                    subject: `Ежегодняя акция в Office ware game manager`,
+                    html: `<h3>Здравствуйте, начинается ежегодняя акция!</h3><p>Спешите приобрести товары с ${req.query.start} по ${req.query.end}.</p>`,
+                }
+                transporter.sendMail(mailOptions, function (err, info) {
+                    if (err) {
+                        return res.json({ status: 'Error', error: err })
+                    }
+                })
+            }
+        })
+    })
+    return res.json({ status: 'OK', error: null })
+
+})
+
 app.get('/debug', (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -4726,15 +4773,7 @@ app.get('/debug', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
 
-    GameRelationModel.updateOne({ _id: req.query.id }, 
-        { 
-            "hours": req.query.hours
-        }, (err, relation) => {
-        if (err) {
-            return res.json({ "status": "Error" })
-        }  
-        return res.json({ "status": "OK" })
-    })
+    return res.json({ status: 'OK', error: null })
 
 })
 
@@ -5026,6 +5065,25 @@ app.get('/api/users/email/set', (req, res) => {
     UserModel.updateOne({ _id: req.query.id },
     {
         login: req.query.email,
+    }, (err, user) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+    
+})
+
+app.get('/api/user/discount/set', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    UserModel.updateOne({ _id: req.query.id },
+    {
+        isNotificationsStartYearlyDiscount: req.query.value,
     }, (err, user) => {
         if (err) {
             return res.json({ status: 'Error' })        

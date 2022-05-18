@@ -18,6 +18,7 @@ import { FriendRequestAddComponent } from './friend-request-add/friend-request-a
 import { CreateGameTagComponent } from './create-game-tag/create-game-tag.component';
 import { AuthComponent } from './auth/auth.component';
 import { CreateUserComponent } from './create-user/create-user.component';
+import { SendMailForUsersComponent } from './send-mail-for-users/send-mail-for-users.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +35,8 @@ import { CreateUserComponent } from './create-user/create-user.component';
     FriendRequestAddComponent,
     CreateGameTagComponent,
     AuthComponent,
-    CreateUserComponent
+    CreateUserComponent,
+    SendMailForUsersComponent
   ],
   imports: [
     BrowserModule,

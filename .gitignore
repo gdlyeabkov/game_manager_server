@@ -1,3 +1,4 @@
+/.env
 # compiled output
 /client/tmp
 /client/out-tsc

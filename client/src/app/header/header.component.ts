@@ -45,4 +45,8 @@ export class HeaderComponent implements OnInit {
     this.route.navigate(['users/add'])
   }
 
+  sendMail () {
+    this.route.navigate(['users/send'])
+  }
+
 }

@@ -11,6 +11,7 @@ import { GroupAttacherComponent } from './group-attacher/group-attacher.componen
 import { FriendRequestAddComponent } from './friend-request-add/friend-request-add.component'
 import { CreateGameTagComponent } from './create-game-tag/create-game-tag.component'
 import { CreateUserComponent } from './create-user/create-user.component'
+import { SendMailForUsersComponent } from './send-mail-for-users/send-mail-for-users.component'
 import {  HomeComponent } from './home/home.component'
 
 const routes: Routes = [
@@ -53,6 +54,10 @@ const routes: Routes = [
   {
     'path': 'users/add',
     'component': CreateUserComponent
+  },
+  {
+    'path': 'users/send',
+    'component': SendMailForUsersComponent
   },
   {
     'path': '**',
