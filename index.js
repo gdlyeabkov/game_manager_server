@@ -614,6 +614,18 @@ const ManualCommentSchema = new mongoose.Schema({
     
 const ManualCommentModel = mongoose.model('ManualCommentModel', ManualCommentSchema)
 
+const ActivitySchema = new mongoose.Schema({
+    user: String,
+    content: String,
+    data: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_activities' })
+    
+const ActivityModel = mongoose.model('ActivityModel', ActivitySchema)
+
 const IllustrationCommentSchema = new mongoose.Schema({
     user: String,
     illustration: String,
@@ -1170,6 +1182,25 @@ app.get('/api/experiment/document', (req, res) => {
         }
     })
 
+})
+
+app.get('/api/activities/all', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ActivityModel.find({  })
+    
+    query.exec((err, activities) => {
+        if (err) {
+            return res.json({ activities: [], "status": "Error" })
+        } else {
+            return res.json({ activities: activities, status: 'OK' })
+        }
+    })
+    
 })
 
 app.get('/api/groups/all', (req, res) => {    
@@ -1800,6 +1831,23 @@ app.get('/api/groups/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await GroupModel.deleteMany((err, groups) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/activities/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ActivityModel.deleteMany((err, groups) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -3040,9 +3088,27 @@ app.get('/api/groups/add', (req, res) => {
                     return res.json({ "status": "Error" })
                 }
                 else {
-                    return res.json({ "status": "OK" })
+                    return res.json({ "status": "OK", id: groupId })
                 }   
             })
+        }
+    })
+
+})
+
+app.get('/api/activities/add', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const activity = new ActivityModel({ user: req.query.id, content: req.query.content, data: req.query.data })
+    activity.save(function (err, activity) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
         }
     })
 
@@ -3538,8 +3604,8 @@ app.post('/api/screenshots/add', screenShotsUpload.any(), async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const illustration = new ScreenShotModel({ user: req.query.id, desc: req.query.desc, isSpoiler: req.query.spoiler, game: req.query.game })
-    illustration.save(function (err, generatedScreenShot) {
+    const screenshot = new ScreenShotModel({ user: req.query.id, desc: req.query.desc, isSpoiler: req.query.spoiler, game: req.query.game })
+    screenshot.save(function (err, generatedScreenShot) {
         if (err) {
             console.log('создаю скриншот ошибка')
         } else {
@@ -3556,7 +3622,12 @@ app.post('/api/screenshots/add', screenShotsUpload.any(), async (req, res) => {
             
         })
 
-        return res.redirect('/')
+        // return res.redirect('/')
+        return res.json({
+            status: 'OK',
+            id: generatedId
+        })
+
     })
 
 })
