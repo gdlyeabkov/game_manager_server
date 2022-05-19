@@ -3482,7 +3482,8 @@ app.get('/api/reviews/add', async (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             console.log('создаю обзор успешно')
-            return res.json({ "status": "OK" })
+            const generatedReviewId = generatedReview._id
+            return res.json({ "status": "OK", 'id': generatedReviewId })
         }
     })
 
@@ -4578,6 +4579,7 @@ app.get('/api/users/stats/increase', async (req, res) => {
             const statsData = JSON.parse(rawStatsData)
             const statsDataUsers = statsData.users
             const statsDataMaxUsers = statsData.maxUsers
+            const statsDataYearlyDiscount = statsData.yearlyDiscount
             const updatedUsersCount = statsDataUsers + 1
             let updatedMaxUsersCount = statsDataMaxUsers
             const isUpdateMaxUsersCount = updatedUsersCount > statsDataMaxUsers
@@ -4586,7 +4588,8 @@ app.get('/api/users/stats/increase', async (req, res) => {
             }
             const updatedStatsData = {
                 users: updatedUsersCount,
-                maxUsers: updatedMaxUsersCount
+                maxUsers: updatedMaxUsersCount,
+                yearlyDiscount: statsDataYearlyDiscount
             }
             const updatedRawStatsData = JSON.stringify(updatedStatsData)
             fs.writeFile(statsFilePath, updatedRawStatsData, (err, data) => {
@@ -4616,10 +4619,12 @@ app.get('/api/users/stats/decrease', async (req, res) => {
             const statsData = JSON.parse(rawStatsData)
             const statsDataUsers = statsData.users
             const statsDataMaxUsers = statsData.maxUsers
+            const statsDataYearlyDiscount = statsData.yearlyDiscount
             const updatedUsersCount = statsDataUsers - 1
             const updatedStatsData = {
                 users: updatedUsersCount,
-                maxUsers: statsDataMaxUsers
+                maxUsers: statsDataMaxUsers,
+                yearlyDiscount: statsDataYearlyDiscount
             }
             const updatedRawStatsData = JSON.stringify(updatedStatsData)
             fs.writeFile(statsFilePath, updatedRawStatsData, (err, data) => {
@@ -4649,10 +4654,12 @@ app.get('/api/users/stats/get', async (req, res) => {
             const statsData = JSON.parse(rawStatsData)
             const usersCount = statsData.users
             const maxUsersCount = statsData.maxUsers
+            const yearlyDiscount = statsData.yearlyDiscount
             return res.json({
                 status: 'OK',
                 users: usersCount,
-                maxUsers: maxUsersCount
+                maxUsers: maxUsersCount,
+                yearlyDiscount: yearlyDiscount
             })
         } 
     })
@@ -4833,7 +4840,39 @@ app.get('/api/users/notify', (req, res) => {
             }
         })
     })
-    return res.json({ status: 'OK', error: null })
+    
+    fs.readFile(statsFilePath, (err, data) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            const rawStatsData = data.toString()
+            const statsData = JSON.parse(rawStatsData)
+            const statsDataUsers = statsData.users
+            const statsDataMaxUsers = statsData.maxUsers
+            const updatedUsersCount = statsDataUsers + 1
+            let updatedMaxUsersCount = statsDataMaxUsers
+            const isUpdateMaxUsersCount = updatedUsersCount > statsDataMaxUsers
+            if (isUpdateMaxUsersCount) {
+                updatedMaxUsersCount = updatedUsersCount
+            }
+            const updatedStatsData = {
+                users: updatedUsersCount,
+                maxUsers: updatedMaxUsersCount,
+                yearlyDiscount: {
+                    start: req.query.start,
+                    end: req.query.end
+                }
+            }
+            const updatedRawStatsData = JSON.stringify(updatedStatsData)
+            fs.writeFile(statsFilePath, updatedRawStatsData, (err, data) => {
+                if (err) {
+                    return res.json({ status: 'Error', error: err })
+                } else {
+                    return res.json({ status: 'OK', error: null })
+                }
+            })
+        } 
+    })
 
 })
 
@@ -5087,6 +5126,25 @@ app.get('/api/forum/topic/msgs/get', async (req, res) => {
 
 })
 
+app.get('/api/forum/topic/msgs/all', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let query = ForumMsgModel.find({  })
+    
+    query.exec((err, msgs) => {
+        if (err) {
+            return res.json({ msgs: [], "status": "Error" })
+        } else {
+            return res.json({ msgs: msgs, status: 'OK' })
+        }
+    })
+
+})
+
 app.get('/api/forums/topics/msgs/all', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -5306,7 +5364,11 @@ const pathToDir = `${__dirname}${pathSeparator}`
 const statsFilePath = `${pathToDir}stats.txt`
 const statsData = {
     users: 0,
-    maxUsers: 0
+    maxUsers: 0,
+    yearlyDiscount: {
+        start: null,
+        end: null
+    }
 }
 const rawStatsData = JSON.stringify(statsData)
 fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
