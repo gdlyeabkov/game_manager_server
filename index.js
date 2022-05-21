@@ -692,6 +692,20 @@ const ManualFavoriteRelationSchema = new mongoose.Schema({
 
 const ManualFavoriteRelationModel = mongoose.model('ManualFavoriteRelationModel', ManualFavoriteRelationSchema)
 
+const ScreenShotFavoriteRelationSchema = new mongoose.Schema({
+    screenShot: String,
+    user: String
+}, { collection : 'my_screenshot_favorite_relations' })
+
+const ScreenShotFavoriteRelationModel = mongoose.model('ScreenShotFavoriteRelationModel', ScreenShotFavoriteRelationSchema)
+
+const IllustrationFavoriteRelationSchema = new mongoose.Schema({
+    illustration: String,
+    user: String
+}, { collection : 'my_illustration_favorite_relations' })
+
+const IllustrationFavoriteRelationModel = mongoose.model('IllustrationFavoriteRelationModel', IllustrationFavoriteRelationSchema)
+
 const IllustrationSchema = new mongoose.Schema({
     title: String,
     desc: String,
@@ -724,6 +738,10 @@ const ScreenShotSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    visibility: {
+        type: String,
+        default: 'Показывать всем'
+    }
 }, { collection : 'myscreenshots' })
     
 const ScreenShotModel = mongoose.model('ScreenShotModel', ScreenShotSchema)
@@ -895,7 +913,11 @@ const GameSchema = new mongoose.Schema({
         default: 0
     },
     type: String,
-    genre: String
+    genre: String,
+    date: {
+        type: Date,
+        default: Date.now()
+    }
 }, { collection : 'my_digital_distributtion_games' })
     
 const GameModel = mongoose.model('GameModel', GameSchema)
@@ -1241,6 +1263,44 @@ app.get('/api/manuals/favorites/all', (req, res) => {
     
 })
 
+app.get('/api/screenshots/favorites/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ScreenShotFavoriteRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/illustrations/favorites/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = IllustrationFavoriteRelationModel.find({  })
+    
+    query.exec((err, relations) => {
+        if (err) {
+            return res.json({ relations: [], "status": "Error" })
+        } else {
+            return res.json({ relations: relations, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/games/tags/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1456,6 +1516,23 @@ app.get('/api/manuals/favorites/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await ManualFavoriteRelationModel.deleteMany((err, relations) => {
+        if (err) {
+            return res.json({ status: 'Error' })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/illustrations/favorites/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await IllustrationFavoriteRelationModel.deleteMany((err, relations) => {
         if (err) {
             return res.json({ status: 'Error' })
         } else {
@@ -1996,6 +2073,40 @@ app.get('/api/manuals/favorites/remove', async (req, res) => {
                 }
                 return res.json({ status: 'OK' })
             })
+        }
+    })
+    
+})
+
+app.get('/api/illustrations/favorites/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await IllustrationFavoriteRelationModel.deleteOne({ illustration: req.query.illustration, user: req.query.user }, (err, relation) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/screenshots/favorites/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ScreenShotFavoriteRelationModel.deleteOne({ screenShot: req.query.screenshot, user: req.query.user }, (err, relation) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
         }
     })
     
@@ -4043,6 +4154,25 @@ app.get('/api/user/name/set', (req, res) => {
 
 })
 
+app.get('/api/screenshot/visibility/set', (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    ScreenShotModel.updateOne({ _id: req.query.id },
+    {
+        visibility: req.query.visibility
+    }, (err, screenShot) => {
+        if (err) {
+            return res.json({ status: 'Error' })        
+        }
+        return res.json({ status: 'OK' })
+    })
+
+})
+
 app.post('/api/talk/edit', talksUpload.any(), (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -4481,6 +4611,60 @@ app.get('/api/manuals/favorites/increase', async (req, res) => {
                     return res.json({
                         status: 'OK'
                     })
+                })
+            })
+        }
+    })
+
+})
+
+app.get('/api/screenshots/favorites/add', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ScreenShotModel.findOne({'_id': req.query.id }, function(err, screnShot) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            const relation = new ScreenShotFavoriteRelationModel({ screenShot: req.query.id, user: req.query.user })
+            relation.save(function (err, relation) {
+                if (err) {
+                    return res.json({
+                        status: 'Error'
+                    })
+                }
+                return res.json({
+                    status: 'OK'
+                })
+            })
+        }
+    })
+
+})
+
+app.get('/api/illustrations/favorites/add', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = IllustrationModel.findOne({'_id': req.query.id }, function(err, illustration) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            const relation = new IllustrationFavoriteRelationModel({ illustration: req.query.id, user: req.query.user })
+            relation.save(function (err, relation) {
+                if (err) {
+                    return res.json({
+                        status: 'Error'
+                    })
+                }
+                return res.json({
+                    status: 'OK'
                 })
             })
         }

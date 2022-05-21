@@ -2,7 +2,14 @@
 <form
     class="m-auto w-25 d-flex flex-column align-items-center"
 >
+    <p
+        class="text-center"
+    >
+        Уведомить пользователей о начале ежегодной акции 
+    </p>
+
     <input
+        #startDateField
         placeholder="Дата начала"
         type="date"
         class="m-2 form-control"
@@ -10,6 +17,7 @@
         [ngModelOptions]="{standalone:true}"
     />
     <input
+        #endDateField
         placeholder="Дата окончания"
         type="date"
         class="m-2 form-control"

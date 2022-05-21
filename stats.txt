@@ -1,1 +1,1 @@
-{"users":6,"maxUsers":7,"yearlyDiscount":{"start":"2022-05-19","end":"2022-05-20"}}
+{"users":18,"maxUsers":19,"yearlyDiscount":{"start":null,"end":null}}
