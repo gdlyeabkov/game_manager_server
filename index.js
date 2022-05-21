@@ -971,6 +971,13 @@ const GameSessionSchema = new mongoose.Schema({
 
 const GameSessionModel = mongoose.model('GameSessionModel', GameSessionSchema)
 
+const UserSubSchema = new mongoose.Schema({
+    user: String,
+    sub: String
+}, { collection : 'my_user_subs' })
+
+const UserSubModel = mongoose.model('UserSubModel', UserSubSchema)
+
 const GroupRequestSchema = new mongoose.Schema({
     group: String,
     user: String
@@ -2231,6 +2238,40 @@ app.get('/api/games/sessions/delete', async (req, res) => {
     
 })
 
+app.get('/api/users/subs/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await UserSubModel.deleteOne({ user: req.query.user, sub: req.query.sub }, (err, session) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/users/subs/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await UserSubModel.deleteMany((err, subs) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/experiments/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2438,6 +2479,25 @@ app.get('/api/games/sessions/all', (req, res) => {
             return res.json({ sessions: [], "status": "Error" })
         } else {
             return res.json({ sessions: sessions, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/users/subs/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = UserSubModel.find({  })
+    
+    query.exec((err, subs) => {
+        if (err) {
+            return res.json({ subs: [], "status": "Error" })
+        } else {
+            return res.json({ subs: subs, status: 'OK' })
         }
     })
     
@@ -3106,6 +3166,24 @@ app.get('/api/games/sessions/add', async (req, res) => {
     
     const gameSession = new GameSessionModel({ game: req.query.id, user: req.query.user })
     gameSession.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
+app.get('/api/users/subs/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const sub = new UserSubModel({ user: req.query.id, sub: req.query.sub })
+    sub.save(function (err) {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
