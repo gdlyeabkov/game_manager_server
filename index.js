@@ -275,6 +275,35 @@ const manualsStorage = multer.diskStorage({
 })
 const manualsUpload = multer({ storage: manualsStorage })
 
+const feedBacksStorage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const feedBackPath = `${pathToDir}uploads/feedbacks`
+        const isFeedBackPathExists = fs.existsSync(feedBackPath)
+        const isFeedBackPathNotExists = !isFeedBackPathExists
+        if (isFeedBackPathNotExists) {
+            fs.mkdirSync(feedBackPath)
+        }
+        cb(null, `uploads/feedbacks`)
+    },
+    filename: function (req, file, cb) {
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const feedBackId = 'hash'
+        const feedBackPath = `${pathToDir}uploads/feedbacks`
+        const isFeedBackPathExists = fs.existsSync(feedBackPath)
+        const isFeedBackPathNotExists = !isFeedBackPathExists
+        const fileName = file.originalname
+        const ext = path.extname(fileName)
+        if (isFeedBackPathNotExists) {
+            fs.mkdirSync(feedBackPath)
+            cb(null, `${feedBackId}${ext}`)
+        } else {
+            cb(null, `${feedBackId}${ext}`)
+        }
+    }
+})
+const feedBacksUpload = multer({ storage: feedBacksStorage })
+
 const illustrationsStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const illustrationPath = `${pathToDir}uploads/illustrations`
@@ -522,6 +551,36 @@ const UserNickNameSchema = new mongoose.Schema({
 })
 
 const UserNickNameModel = mongoose.model('UserNickNameModel', UserNickNameSchema)
+
+const FeedBackSchema = new mongoose.Schema({
+    user: String,
+    title: String,
+    content: String
+})
+
+const FeedBackModel = mongoose.model('FeedBackModel', FeedBackSchema)
+
+const ComplaintSchema = new mongoose.Schema({
+    user: String,
+    scammer: String,
+    content: String
+})
+
+const ComplaintModel = mongoose.model('ComplaintModel', ComplaintSchema)
+
+const PurchaseSchema = new mongoose.Schema({
+    user: String,
+    price: Number,
+    balance: Number,
+    type: String,
+    msg: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+const PurchaseModel = mongoose.model('PurchaseModel', PurchaseSchema)
 
 const FriendAliasSchema = new mongoose.Schema({
     user: String,
@@ -1754,6 +1813,25 @@ app.get('/api/manuals/all', (req, res) => {
     
 })
 
+app.get('/api/feedbacks/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = FeedBackModel.find({  })
+    
+    query.exec((err, feedBacks) => {
+        if (err) {
+            return res.json({ feedBacks: [], "status": "Error" })
+        } else {
+            return res.json({ feedBacks: feedBacks, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/manuals/visits/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -1966,6 +2044,23 @@ app.get('/api/manuals/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await ManualModel.deleteMany((err, manuals) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/feedbacks/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await FeedBackModel.deleteMany((err, feedBacks) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2661,6 +2756,44 @@ app.get('/api/forums/all', (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ forums: forums, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/complaints/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ComplaintModel.find({  })
+    
+    query.exec((err, complaints) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ complaints: complaints, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/purchases/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = PurchaseModel.find({  })
+    
+    query.exec((err, purchases) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ purchases: purchases, status: 'OK' })
         }
     })
     
@@ -3657,6 +3790,30 @@ app.post('/api/manuals/add', manualsUpload.any(), async (req, res) => {
 
 })
 
+app.post('/api/feedbacks/add', feedBacksUpload.any(), async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const feedBack = new FeedBackModel({ user: req.query.id, content: req.query.content, title: req.query.title })
+    feedBack.save(function (err, generatedFeedBack) {
+        
+        const generatedId = generatedFeedBack._id
+        const pathSeparator = path.sep
+        const pathToDir = `${__dirname}${pathSeparator}`
+        const feedBackPath = `${pathToDir}uploads/feedbacks/hash${req.query.ext}`
+        const newFeedBackPath = `${pathToDir}uploads/feedbacks/${generatedId}${req.query.ext}`
+        fs.rename(feedBackPath, newFeedBackPath, (err) => {
+            
+        })
+
+        return res.redirect('/')
+    })
+
+})
+
 app.get('/api/reviews/add', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -4394,6 +4551,18 @@ app.get('/api/forums/delete', async (req, res) => {
 
 })
 
+app.get('/api/purchases/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await PurchaseModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
 app.get('/api/forums/topics/delete', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -4493,18 +4662,31 @@ app.get('/api/users/amount/increase', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    let query = UserModel.findOne({'_id': req.query.id }, function(err, user) {
+    UserModel.findOne({'_id': req.query.id }, function(err, user) {
         if (err) {
             res.json({ "status": "Error" })
         } else {
             UserModel.updateOne({ _id: req.query.id }, 
             { 
                 "$inc": { "amount": req.query.amount }
-            }, (err, user) => {
+            }, (err) => {
                 if (err) {
                     return res.json({ "status": "Error" })
-                }  
-                return res.json({ "status": "OK" })
+                }
+                const balance = user.amount
+                const parsedAmount = Number(req.query.amount)
+                const updatedBalance = balance + parsedAmount
+                const purchase = new PurchaseModel({ user: req.query.id, price: req.query.amount, balance: updatedBalance, type: 'Прямое пополнение', msg: `На кошелек переведено ${req.query.amount} руб.` })
+                purchase.save(function (err) {
+                    if (err) {
+                        return res.json({
+                            status: 'Error'
+                        })
+                    }
+                    return res.json({
+                        status: 'OK'
+                    })
+                })
             })
         }
     })
@@ -5159,6 +5341,27 @@ app.get('/api/forums/create', async (req, res) => {
     console.log('создаю форум')
 
     const forum = new ForumModel({ title: req.query.title })
+    forum.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/complaints/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    const forum = new ComplaintModel({ user: req.query.id, scammer: req.query.scammer, content: req.query.content })
     forum.save(function (err) {
         if (err) {
             return res.json({
