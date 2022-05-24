@@ -540,6 +540,10 @@ const UserSchema = new mongoose.Schema({
     isNotificationsStartYearlyDiscount: {
         type: Boolean,
         default: true
+    },
+    level: {
+        type: Number,
+        default: 0
     }
 }, { collection : 'mygamers' })
     
@@ -555,7 +559,13 @@ const UserNickNameModel = mongoose.model('UserNickNameModel', UserNickNameSchema
 const FeedBackSchema = new mongoose.Schema({
     user: String,
     title: String,
-    content: String
+    content: String,
+    name: String,
+    phone: String,
+    date: String,
+    method: String,
+    cvv: String,
+    price: String
 })
 
 const FeedBackModel = mongoose.model('FeedBackModel', FeedBackSchema)
@@ -3275,10 +3285,16 @@ app.get('/api/games/relations/add', async (req, res) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
-            const price = req.query.price
+            const price = Number(req.query.price)
+            let countNewLevels = 0
+            const isAddLevel = price != 0
+            if (isAddLevel) {
+                countNewLevels = 1
+            }
             UserModel.updateOne({ _id: req.query.user }, 
             { 
-                "$inc": { "amount": -price }
+                '$inc': { 'amount': -price },
+                '$inc': { 'level': countNewLevels }
             }, (err, user) => {
                 if (err) {
                     return res.json({ "status": "Error" })
@@ -3797,7 +3813,7 @@ app.post('/api/feedbacks/add', feedBacksUpload.any(), async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const feedBack = new FeedBackModel({ user: req.query.id, content: req.query.content, title: req.query.title })
+    const feedBack = new FeedBackModel({ user: req.query.id, content: req.query.content, title: req.query.title, name: req.query.name, phone: req.query.phone, date: req.query.date, method: req.query.method, cvv: req.query.cvv, price: req.query.price })
     feedBack.save(function (err, generatedFeedBack) {
         
         const generatedId = generatedFeedBack._id
