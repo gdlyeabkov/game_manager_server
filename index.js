@@ -573,7 +573,11 @@ const FeedBackModel = mongoose.model('FeedBackModel', FeedBackSchema)
 const ComplaintSchema = new mongoose.Schema({
     user: String,
     scammer: String,
-    content: String
+    content: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
 })
 
 const ComplaintModel = mongoose.model('ComplaintModel', ComplaintSchema)
@@ -837,6 +841,38 @@ const ForumSchema = new mongoose.Schema({
     
 const ForumModel = mongoose.model('ForumModel', ForumSchema)
 
+const EmailSchema = new mongoose.Schema({
+    user: String,
+    recepient: String,
+    data: String,
+    type: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_emails' })
+    
+const EmailModel = mongoose.model('EmailModel', EmailSchema)
+
+const DeviceSchema = new mongoose.Schema({
+    device: String,
+    user: String
+}, { collection : 'my_devices' })
+    
+const DeviceModel = mongoose.model('DeviceModel', DeviceSchema)
+
+const RecentLoginSchema = new mongoose.Schema({
+    user: String,
+    start: String,
+    end: String,
+    os: String,
+    country: String,
+    city: String,
+    state: String
+}, { collection : 'my_recent_logins' })
+    
+const RecentLoginModel = mongoose.model('RecentLoginModel', RecentLoginSchema)
+
 const ForumTopicSchema = new mongoose.Schema({
     forum: String,
     title: String,
@@ -939,6 +975,13 @@ const TalkRelationSchema = new mongoose.Schema({
 }, { collection : 'my_talk_relations' })
 
 const TalkRelationModel = mongoose.model('TalkRelationModel', TalkRelationSchema)
+
+const ModeratorSchema = new mongoose.Schema({
+    user: String,
+    moderator: String
+}, { collection : 'my_moderators' })
+
+const ModeratorModel = mongoose.model('ModeratorModel', ModeratorSchema)
 
 const IconSchema = new mongoose.Schema({
     title: String,
@@ -2771,6 +2814,82 @@ app.get('/api/forums/all', (req, res) => {
     
 })
 
+app.get('/api/moderators/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ModeratorModel.find({  })
+    
+    query.exec((err, moderators) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ moderators: moderators, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/devices/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = DeviceModel.find({  })
+    
+    query.exec((err, devices) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ devices: devices, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/logins/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = RecentLoginModel.find({  })
+    
+    query.exec((err, logins) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ logins: logins, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/emails/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = EmailModel.find({  })
+    
+    query.exec((err, emails) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ emails: emails, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/complaints/all', (req, res) => {  
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3203,6 +3322,24 @@ app.get('/api/groups/relations/add', async (req, res) => {
                     return res.json({ "status": "OK" })
                 }
             })
+        }
+    })
+
+})
+
+app.get('/api/moderators/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const moderator = new ModeratorModel({ user: req.query.id, moderator: req.query.moderator })
+    moderator.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
         }
     })
 
@@ -4567,6 +4704,54 @@ app.get('/api/forums/delete', async (req, res) => {
 
 })
 
+app.get('/api/moderators/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await ModeratorModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/devices/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await DeviceModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/logins/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await RecentLoginModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
+app.get('/api/emails/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await EmailModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
 app.get('/api/purchases/delete', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -5056,7 +5241,14 @@ app.get('/api/users/stats/increase', async (req, res) => {
                 if (err) {
                     return res.json({ status: 'Error' })
                 } else {
-                    return res.json({ status: 'OK' })
+                    const device = new DeviceModel({ device: req.query.device, user: req.query.id })
+                    device.save(function (err) {
+                        if (err) {
+                            return res.json({ status: 'Error' })
+                        } else {
+                            return res.json({ status: 'OK' })
+                        }
+                    })
                 }
             })
         } 
@@ -5091,7 +5283,14 @@ app.get('/api/users/stats/decrease', async (req, res) => {
                 if (err) {
                     return res.json({ status: 'Error' })
                 } else {
-                    return res.json({ status: 'OK' })
+                    const login = new RecentLoginModel({ start: req.query.start, end: req.query.end, os: req.query.os, city: req.query.city, country: req.query.country, state: req.query.state, user: req.query.id })
+                    login.save(function (err) {
+                        if (err) {
+                            return res.json({ status: 'Error' })
+                        } else {
+                            return res.json({ status: 'OK' })
+                        }
+                    })
                 }
             })
         } 
@@ -5295,6 +5494,16 @@ app.get('/api/users/notify', (req, res) => {
                 transporter.sendMail(mailOptions, function (err, info) {
                     if (err) {
                         return res.json({ status: 'Error', error: err })
+                    } else {
+                        const email = new EmailModel({ user: user._id, recepient: user.login, type: 'Ежегодняя акция', data: `<h3>Здравствуйте, начинается ежегодняя акция!</h3><p>Спешите приобрести товары с ${req.query.start} по ${req.query.end}.</p>` })
+                        email.save(function (err) {
+                            if (err) {
+                                return res.json({
+                                    status: 'Error',
+                                    error: err
+                                })
+                            }
+                        })
                     }
                 })
             }
@@ -5763,16 +5972,29 @@ app.get('/api/users/email/set/accept', (req, res) => {
         html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены E-mail вашего аккаунта Office ware game manager</p>`,
     }
     transporter.sendMail(mailOptions, function (err, info) {
-        // if (err) {
-        //     return res.json({ status: 'Error' })
-        // } else {
-        //     return res.json({ status: 'OK' })
-        // }
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        } else {
+            const email = new EmailModel({ user: req.query.id, recepient: req.query.to, type: 'Обновление E-mail', data: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены E-mail вашего аккаунта Office ware game manager</p>` })
+            email.save(function (err) {
+                if (err) {
+                    return res.json({
+                        status: 'Error'
+                    })
+                } else {
+                    return res.json({
+                        status: 'OK'
+                    })
+                }
+            })
+        }
     })
 
     console.log(`отправил письмо на ${req.query.to} для обновления почты код: ${req.query.code}`)
 
-    return res.json({ status: 'OK' })
+    // return res.json({ status: 'OK' })
     
 })
 
@@ -5813,12 +6035,28 @@ app.get('/api/users/password/set/accept', (req, res) => {
         html: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены пароля вашего аккаунта Office ware game manager</p>`,
     }
     transporter.sendMail(mailOptions, function (err, info) {
-        
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        } else {
+            const email = new EmailModel({ user: req.query.id, recepient: req.query.to, type: 'Обновление пароля', data: `<h3>Здравствуйте, ${req.query.to}!</h3><p>${req.query.code}</p><p>Код для смены пароля вашего аккаунта Office ware game manager</p>` })
+            email.save(function (err) {
+                if (err) {
+                    return res.json({
+                        status: 'Error'
+                    })
+                }
+                return res.json({
+                    status: 'OK'
+                })
+            })
+        }
     })
 
     console.log(`отправил письмо на ${req.query.to} для обновления пароля код: ${req.query.code}`)
 
-    return res.json({ status: 'OK' })
+    // return res.json({ status: 'OK' })
     
 })
 
