@@ -1090,6 +1090,13 @@ const UserSubSchema = new mongoose.Schema({
 
 const UserSubModel = mongoose.model('UserSubModel', UserSubSchema)
 
+const GameSubSchema = new mongoose.Schema({
+    game: String,
+    sub: String
+}, { collection : 'my_game_subs' })
+
+const GameSubModel = mongoose.model('GameSubModel', GameSubSchema)
+
 const GroupRequestSchema = new mongoose.Schema({
     group: String,
     user: String
@@ -2335,6 +2342,23 @@ app.get('/api/talks/roles/relations/delete', async (req, res) => {
     
 })
 
+app.get('/api/moderators/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ModeratorModel.deleteOne({ user: req.query.id, moderator: req.query.moderator }, (err, moderator) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/games/relations/remove', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2393,7 +2417,26 @@ app.get('/api/users/subs/remove', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
+    console.log(`user: ${req.query.user}, sub: ${req.query.sub}`)
+
     await UserSubModel.deleteOne({ user: req.query.user, sub: req.query.sub }, (err, session) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/subs/remove', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GameSubModel.deleteOne({ game: req.query.game, sub: req.query.sub }, (err, sub) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2411,6 +2454,23 @@ app.get('/api/users/subs/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await UserSubModel.deleteMany((err, subs) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/subs/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await GameSubModel.deleteMany((err, subs) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2640,6 +2700,25 @@ app.get('/api/users/subs/all', (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     let query = UserSubModel.find({  })
+    
+    query.exec((err, subs) => {
+        if (err) {
+            return res.json({ subs: [], "status": "Error" })
+        } else {
+            return res.json({ subs: subs, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/games/subs/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = GameSubModel.find({  })
     
     query.exec((err, subs) => {
         if (err) {
