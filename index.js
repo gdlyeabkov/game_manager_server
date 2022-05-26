@@ -582,6 +582,18 @@ const ComplaintSchema = new mongoose.Schema({
 
 const ComplaintModel = mongoose.model('ComplaintModel', ComplaintSchema)
 
+const ReviewComplaintSchema = new mongoose.Schema({
+    user: String,
+    review: String,
+    desc: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+})
+
+const ReviewComplaintModel = mongoose.model('ReviewComplaintModel', ReviewComplaintSchema)
+
 const PurchaseSchema = new mongoose.Schema({
     user: String,
     price: Number,
@@ -760,7 +772,11 @@ const ManualVisitModel = mongoose.model('ManualVisitModel', ManualVisitSchema)
 
 const ForumVisitSchema = new mongoose.Schema({
     forum: String,
-    user: String
+    user: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
 }, { collection : 'my_forum_visits' })
 
 const ForumVisitModel = mongoose.model('ForumVisitModel', ForumVisitSchema)
@@ -879,6 +895,17 @@ const RecentLoginSchema = new mongoose.Schema({
 }, { collection : 'my_recent_logins' })
     
 const RecentLoginModel = mongoose.model('RecentLoginModel', RecentLoginSchema)
+
+const ExternalRecentLoginSchema = new mongoose.Schema({
+    user: String,
+    name: String,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_external_logins' })
+    
+const ExternalRecentLoginModel = mongoose.model('ExternalRecentLoginModel', ExternalRecentLoginSchema)
 
 const ForumTopicSchema = new mongoose.Schema({
     forum: String,
@@ -2996,6 +3023,25 @@ app.get('/api/logins/all', (req, res) => {
     
 })
 
+app.get('/api/logins/external/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ExternalRecentLoginModel.find({  })
+    
+    query.exec((err, logins) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ logins: logins, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/emails/all', (req, res) => {  
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3023,6 +3069,25 @@ app.get('/api/complaints/all', (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
     let query = ComplaintModel.find({  })
+    
+    query.exec((err, complaints) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ complaints: complaints, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/reviews/complaints/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ReviewComplaintModel.find({  })
     
     query.exec((err, complaints) => {
         if (err) {
@@ -4046,7 +4111,7 @@ app.get('/api/forums/visits/add', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    const visit = newForumVisitModel({ forum: req.query.id, user: req.query.user })
+    const visit = new ForumVisitModel({ forum: req.query.id, user: req.query.user })
     visit.save(function (err, generatedVisit) {
         if (err) {
             return res.json({
@@ -4904,6 +4969,18 @@ app.get('/api/logins/delete', async (req, res) => {
 
 })
 
+app.get('/api/logins/external/delete', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+      
+    await ExternalRecentLoginModel.deleteMany({  })
+    return res.json({ status: 'OK' })
+
+})
+
 app.get('/api/emails/delete', async (req, res) => {
 
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -5743,6 +5820,27 @@ app.get('/api/forums/create', async (req, res) => {
 
 })
 
+app.get('/api/logins/external/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    const login = new ExternalRecentLoginModel({ user: req.query.id, name: req.query.name })
+    login.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
 app.get('/api/complaints/add', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -5752,6 +5850,27 @@ app.get('/api/complaints/add', async (req, res) => {
 
     const forum = new ComplaintModel({ user: req.query.id, scammer: req.query.scammer, content: req.query.content })
     forum.save(function (err) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
+    })
+
+})
+
+app.get('/api/reviews/complaints/add', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    const complaint = new ReviewComplaintModel({ user: req.query.user, review: req.query.id, desc: req.query.desc })
+    complaint.save(function (err) {
         if (err) {
             return res.json({
                 status: 'Error'
