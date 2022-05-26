@@ -758,6 +758,13 @@ const ManualVisitSchema = new mongoose.Schema({
 
 const ManualVisitModel = mongoose.model('ManualVisitModel', ManualVisitSchema)
 
+const ForumVisitSchema = new mongoose.Schema({
+    forum: String,
+    user: String
+}, { collection : 'my_forum_visits' })
+
+const ForumVisitModel = mongoose.model('ForumVisitModel', ForumVisitSchema)
+
 const ManualFavoriteRelationSchema = new mongoose.Schema({
     manual: String,
     user: String
@@ -1029,7 +1036,10 @@ const GameSchema = new mongoose.Schema({
     date: {
         type: Date,
         default: Date.now()
-    }
+    },
+    desc: String,
+    developer: String,
+    editor: String
 }, { collection : 'my_digital_distributtion_games' })
     
 const GameModel = mongoose.model('GameModel', GameSchema)
@@ -1091,7 +1101,7 @@ const UserSubSchema = new mongoose.Schema({
 const UserSubModel = mongoose.model('UserSubModel', UserSubSchema)
 
 const GameSubSchema = new mongoose.Schema({
-    game: String,
+    user: String,
     sub: String
 }, { collection : 'my_game_subs' })
 
@@ -1892,6 +1902,25 @@ app.get('/api/feedbacks/all', (req, res) => {
     
 })
 
+app.get('/api/forums/visits/all', (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    let query = ForumVisitModel.find({  })
+    
+    query.exec((err, visits) => {
+        if (err) {
+            return res.json({ visits: [], "status": "Error" })
+        } else {
+            return res.json({ visits: visits, status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/manuals/visits/all', (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2121,6 +2150,23 @@ app.get('/api/feedbacks/delete', async (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
     await FeedBackModel.deleteMany((err, feedBacks) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/forums/visits/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ForumVisitModel.deleteMany((err, visits) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -2436,7 +2482,7 @@ app.get('/api/games/subs/remove', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
        
-    await GameSubModel.deleteOne({ game: req.query.game, sub: req.query.sub }, (err, sub) => {
+    await GameSubModel.deleteOne({ user: req.query.user, sub: req.query.sub }, (err, sub) => {
         if (err) {
             return res.json({ "status": "Error" })
         } else {
@@ -3558,6 +3604,24 @@ app.get('/api/users/subs/add', async (req, res) => {
 
 })
 
+app.get('/api/games/subs/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const sub = new GameSubModel({ user: req.query.id, sub: req.query.sub })
+    sub.save(function (err) {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ "status": "OK" })
+        }
+    })
+
+})
+
 app.get('/api/icons/relations/add', async (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -3971,6 +4035,27 @@ app.get('/api/msgs/reactions/add', async (req, res) => {
             console.log(`реакция сохранена`)
             return res.json({ "status": "OK" })
         }
+    })
+
+})
+
+app.get('/api/forums/visits/add', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    const visit = newForumVisitModel({ forum: req.query.id, user: req.query.user })
+    visit.save(function (err, generatedVisit) {
+        if (err) {
+            return res.json({
+                status: 'Error'
+            })
+        }
+        return res.json({
+            status: 'OK'
+        })
     })
 
 })
@@ -5414,7 +5499,7 @@ app.post('/api/games/create', gameUpload.fields([{name: 'gameDistributive', maxC
 
     console.log('создаю игру')
 
-    const game = new GameModel({ name: req.query.name, platform: req.query.platform, price: req.query.price, type: req.query.type, genre: req.query.genre })
+    const game = new GameModel({ name: req.query.name, platform: req.query.platform, price: req.query.price, type: req.query.type, genre: req.query.genre, desc: req.query.desc, developer: req.query.developer, editor: req.query.editor })
     game.save(function (err, generatedGame) {
         const generatedGameId = generatedGame._id
         const rawTagRelations = req.query.tags

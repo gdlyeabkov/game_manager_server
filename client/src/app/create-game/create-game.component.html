@@ -3,7 +3,7 @@
     ngNoForm
     #form
     method="POST"
-    action="{{'api/games/create?name=' + gameName + '&platform=' + platform + '&price=' + getPrice() + '&tags=' + getTagRelations() + '&type=' + type + '&genre=' + genre }}"
+    action="{{'api/games/create?name=' + gameName + '&platform=' + platform + '&price=' + getPrice() + '&tags=' + getTagRelations() + '&type=' + type + '&genre=' + genre + '&desc=' + desc + '&developer=' + developer + '&editor=' + editor }}"
     class="d-flex justify-content flex-column align-items-center"
     enctype="multipart/form-data"
 >
@@ -211,6 +211,27 @@
             Спортивная игра
         </option>
     </select>
+    <textarea
+        placeholder="Описание игры"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="desc"
+        [ngModelOptions]="{standalone:true}"
+    ></textarea>
+    <input
+        placeholder="Разработчик игры"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="developer"
+        [ngModelOptions]="{standalone:true}"
+    />
+    <input
+        placeholder="Издатель игры"
+        type="text"
+        class="m-2 w-25 form-control"
+        [(ngModel)]="editor"
+        [ngModelOptions]="{standalone:true}"
+    />
     <button
         class="btn btn-primary"
         (click)="uploadFiles()"

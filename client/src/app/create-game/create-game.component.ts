@@ -17,6 +17,9 @@ export class CreateGameComponent implements OnInit {
   tags: Array<GameTagCheckBoxData> = []
   type: string = 'Продукты в раннем доступе'
   genre: string = 'Инди'
+  desc: string = ''
+  developer: string = ''
+  editor: string = ''
 
   @ViewChild('form') form: ElementRef<HTMLFormElement>|null = null;
   @ViewChild('gameUrl') gameUrl:ElementRef<HTMLInputElement>|null = null
