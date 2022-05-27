@@ -95,6 +95,10 @@ const fs = require('fs')
 
 const multer  = require('multer')
 
+// const fetch = require('node-fetch');
+// import fetch from 'node-fetch';
+// import fetch from 'cross-fetch';
+
 var transporter = nodemailer.createTransport({
     service: 'Gmail',
     // auth: {
@@ -6453,6 +6457,15 @@ app.get('/api/users/token/check', (req, res) => {
             return res.json({ status: 'OK', login: decoded.user })
         }
     })
+
+})
+
+app.get('/api/streams/all/plain', (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
 
 })
 
