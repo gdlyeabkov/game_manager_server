@@ -1,1 +1,1 @@
-{"users":0,"maxUsers":0,"yearlyDiscount":{"start":null,"end":null}}
+{"users":2,"maxUsers":2,"yearlyDiscount":{"start":null,"end":null}}

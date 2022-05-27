@@ -6,8 +6,6 @@ import { AuthService } from '../auth.service';
 import * as jwt from 'jsonwebtoken'
 import { HttpClient } from '@angular/common/http';
 
-import { JwtHelperService } from '@auth0/angular-jwt';
-
 @Component({
   selector: 'app-home',
   templateUrl: './home.component.html',
@@ -17,7 +15,7 @@ export class HomeComponent implements OnInit {
 
   isAuth:boolean = false
 
-  constructor(private route: ActivatedRoute, private router:Router, private http: HttpClient, public jwtHelper: JwtHelperService) { }
+  constructor(private route: ActivatedRoute, private router:Router, private http: HttpClient) { }
 
   ngOnInit(): void {
     this.checkToken();

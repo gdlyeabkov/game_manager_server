@@ -24,6 +24,8 @@ const nodemailer = require("nodemailer")
 
 const jwt = require('jsonwebtoken')
 
+const node_media_server = require('./media_server')
+
 io.on('connection', client => {
     clients.push(client)
     console.log('connection')
@@ -6491,6 +6493,8 @@ fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
         console.log('статистика создана')
     }
 })
+
+node_media_server.run();
 
 server.listen(port, () => {
     
