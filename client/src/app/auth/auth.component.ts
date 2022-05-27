@@ -31,7 +31,10 @@ export class AuthComponent implements OnInit {
         const status = value['status']
         let isOk = status === "OK"
         if (isOk) {
-
+        
+          const token = value['token']  
+          localStorage.setItem('office_ware_game_manager', token)
+          
           const userId = value['id']
           this.http.get(
             `http://localhost:4000/api/users/get/?id=${userId}`

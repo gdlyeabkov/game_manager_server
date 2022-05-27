@@ -22,6 +22,8 @@ const io = require("socket.io")(server)
 
 const nodemailer = require("nodemailer")
 
+const jwt = require('jsonwebtoken')
+
 io.on('connection', client => {
     clients.push(client)
     console.log('connection')
@@ -674,6 +676,18 @@ const ReviewSchema = new mongoose.Schema({
 }, { collection : 'myreviews' })
     
 const ReviewModel = mongoose.model('ReviewModel', ReviewSchema)
+
+const ReviewLikeSchema = new mongoose.Schema({
+    user: String,
+    review: String,
+    isDislike: Boolean,
+    date: {
+        type: Date,
+        default: Date.now
+    }
+}, { collection : 'my_review_likes' })
+
+const ReviewLikeModel = mongoose.model('ReviewLikeModel', ReviewLikeSchema)
 
 const ReviewCommentSchema = new mongoose.Schema({
     user: String,
@@ -2638,6 +2652,23 @@ app.get('/api/reviews/comments/delete', async (req, res) => {
     
 })
 
+app.get('/api/reviews/likes/delete', async (req, res) => {    
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+       
+    await ReviewLikeModel.deleteMany((err, likes) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ status: 'OK' })
+        }
+    })
+    
+})
+
 app.get('/api/manuals/comments/delete', async (req, res) => {    
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -2961,6 +2992,25 @@ app.get('/api/forums/all', (req, res) => {
             return res.json({ "status": "Error" })
         } else {
             return res.json({ forums: forums, status: 'OK' })
+        }
+    })
+    
+})
+
+app.get('/api/reviews/likes/all', (req, res) => {  
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ReviewLikeModel.find({  })
+    
+    query.exec((err, likes) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        } else {
+            return res.json({ likes: likes, status: 'OK' })
         }
     })
     
@@ -3370,7 +3420,12 @@ app.get('/api/users/check', (req, res) => {
 
             if (req.query.login === user.login && passwordCheck) {
                 userId = user._id
-                return res.json({ "status": "OK", 'id': userId })
+
+                const token = jwt.sign({
+                    user: this.email
+                }, 'office_ware_game_manager_secret', { expiresIn: '1m' })
+
+                return res.json({ "status": "OK", 'id': userId, token: token })
             } else {
                 return res.json({ "status": "Error", 'id': userId })
             }
@@ -5150,10 +5205,49 @@ app.get('/api/reviews/advices/increase', async (req, res) => {
             { 
                 "$inc": { "advices": 1 }
             }, (err, review) => {
-                if (err) {
-                    return res.json({ "status": "Error" })
-                }  
-                return res.json({ "status": "OK" })
+                const like = new ReviewLikeModel({ user: req.query.user, review: req.query.id, isDislike: false })
+                like.save(function (err) {
+                    if (err) {
+                        return res.json({
+                            status: 'Error'
+                        })
+                    }
+                    return res.json({
+                        status: 'OK'
+                    })
+                })
+            })
+        }
+    })
+
+})
+
+app.get('/api/reviews/advices/decrease', async (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    let query = ReviewModel.findOne({'_id': req.query.id }, function(err, review) {
+        if (err) {
+            res.json({ "status": "Error" })
+        } else {
+            ReviewModel.updateOne({ _id: req.query.id }, 
+            { 
+                "$inc": { "advices": 1 }
+            }, (err, review) => {
+                const like = new ReviewLikeModel({ user: req.query.user, review: req.query.id, isDislike: true })
+                like.save(function (err) {
+                    if (err) {
+                        return res.json({
+                            status: 'Error'
+                        })
+                    }
+                    return res.json({
+                        status: 'OK'
+                    })
+                })
             })
         }
     })
@@ -6341,6 +6435,23 @@ app.get('/api/users/password/set/accept', (req, res) => {
 
     // return res.json({ status: 'OK' })
     
+})
+
+app.get('/api/users/token/check', (req, res) => {
+
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    jwt.verify(req.query.token, 'office_ware_game_manager_secret', (err, decoded) => {
+        if (err) {
+            return res.json({ status: 'Error', login: '' })
+        } else {
+            return res.json({ status: 'OK', login: decoded.user })
+        }
+    })
+
 })
 
 app.get('**', async (req, res) => {

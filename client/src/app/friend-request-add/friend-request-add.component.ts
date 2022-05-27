@@ -28,22 +28,33 @@ export class FriendRequestAddComponent implements OnInit {
         const queryParams = this.route.queryParams
         let friendId: string = ''
         if (isOk) {
+          
           queryParams.subscribe(
             (innerValue: any) => {
               const currentUserId = value['id']
               friendId = innerValue['friend']
               this.http.get(
-                `http://localhost:4000/api/friends/requests/add/?id=${currentUserId}&friend=${friendId}`
+                `http://localhost:4000/api/logins/external/add/?id=${currentUserId}&name=${this.email}`
               ).subscribe(
-                (nestedValue: any) => {
+                (value: any) => {
+                  const status = value['status']
+                  let isOk = status === "OK"
+                  if (isOk) {
+                    this.http.get(
+                      `http://localhost:4000/api/friends/requests/add/?id=${currentUserId}&friend=${friendId}`
+                    ).subscribe(
+                      (nestedValue: any) => {
+                      }
+                    )
+                  alert('запрос в друзья был отправлен')
+                  this.email = ''
+                  this.password = ''
+                  this.isErrors = false
+            
                 }
-              )
-              alert('запрос в друзья был отправлен')
-              this.email = ''
-              this.password = ''
-              this.isErrors = false
-            }
-          )
+              }
+            )
+          })
         } else {
           this.isErrors = true
         }
