@@ -564,6 +564,16 @@ const UserNickNameSchema = new mongoose.Schema({
 
 const UserNickNameModel = mongoose.model('UserNickNameModel', UserNickNameSchema)
 
+const StreamSchema = new mongoose.Schema({
+    stream: String,
+    users: {
+        type: Number,
+        default: 0
+    }
+})
+
+const StreamModel = mongoose.model('StreamModel', StreamSchema)
+
 const FeedBackSchema = new mongoose.Schema({
     user: String,
     title: String,
@@ -3623,6 +3633,25 @@ app.get('/api/points/items/relations/add', async (req, res) => {
 
 })
 
+app.get('/api/streams/users/increase', async (req, res) => {
+    
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+    
+    StreamModel.updateOne({ stream: id }, 
+    { 
+        "$inc": { "amount": -price }
+    }, (err, user) => {
+        if (err) {
+            return res.json({ "status": "Error" })
+        }  
+        return res.json({ "status": "OK" })
+    })
+
+})
+
 app.get('/api/friend/alias/set', async (req, res) => {
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -6218,6 +6247,25 @@ app.get('/api/forum/topic/msgs/all', async (req, res) => {
 
 })
 
+app.get('/api/streams/all', async (req, res) => {
+        
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
+
+    let query = StreamModel.find({  })
+    
+    query.exec((err, streams) => {
+        if (err) {
+            return res.json({ streams: [], "status": "Error" })
+        } else {
+            return res.json({ streams: streams, status: 'OK' })
+        }
+    })
+
+})
+
 app.get('/api/forums/topics/msgs/all', async (req, res) => {
         
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -6512,3 +6560,5 @@ node_media_server.run();
 server.listen(port, () => {
     
 })
+
+// exports.StreamModel = StreamModel;
