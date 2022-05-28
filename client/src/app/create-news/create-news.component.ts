@@ -24,7 +24,7 @@ export class CreateNewsComponent implements OnInit {
 
   getGames () {
     this.http.get(
-      `http://localhost:4000/api/games/get`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/games/get`
     ).subscribe(
       (value: any) => {
         const status = value['status'];
@@ -49,7 +49,7 @@ export class CreateNewsComponent implements OnInit {
     const selectedGame = this.gameSelector!.nativeElement.options[selectedIndex];
     const selectedGameId = selectedGame.value
     this.http.get(
-      `http://localhost:4000/api/news/create/?title=${this.title}&content=${this.content}&game=${selectedGameId}`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/news/create/?title=${this.title}&content=${this.content}&game=${selectedGameId}`
     ).subscribe(
       (value: any) => {
         const status = value['status']

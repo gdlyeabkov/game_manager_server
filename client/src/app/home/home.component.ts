@@ -47,7 +47,7 @@ export class HomeComponent implements OnInit {
     const isTokenExists = possibleToken !== null
     if (isTokenExists) {
       this.http.get(
-        `http://localhost:4000/api/users/token/check/?token=${possibleToken}`
+        `https://loud-reminiscent-jackrabbit.glitch.me/api/users/token/check/?token=${possibleToken}`
       ).subscribe(
         (value: any) => {
           const status = value['status']

@@ -17,7 +17,7 @@ export class CreateGameTagComponent implements OnInit {
 
   addTag () {
     this.http.get(
-      `http://localhost:4000/api/games/tags/create/?title=${this.title}`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/games/tags/create/?title=${this.title}`
     ).subscribe(
       (value: any) => {
         const status = value['status']

@@ -25,7 +25,7 @@ export class AuthComponent implements OnInit {
 
   checkUser () {
     this.http.get(
-      `http://localhost:4000/api/users/check/?login=${this.email}&password=${this.password}`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/users/check/?login=${this.email}&password=${this.password}`
     ).subscribe(
       (value: any) => {
         const status = value['status']
@@ -37,7 +37,7 @@ export class AuthComponent implements OnInit {
           
           const userId = value['id']
           this.http.get(
-            `http://localhost:4000/api/users/get/?id=${userId}`
+            `https://loud-reminiscent-jackrabbit.glitch.me/api/users/get/?id=${userId}`
           ).subscribe(
             (value: any) => {
               const status = value['status']
@@ -63,7 +63,7 @@ export class AuthComponent implements OnInit {
 
   createUser () {
     this.http.get(
-      `http://localhost:4000/api/users/create/?login=${this.email}&password=${this.password}&confirmPassword=${this.confirmPassword}&role=admin`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/users/create/?login=${this.email}&password=${this.password}&confirmPassword=${this.confirmPassword}&role=admin`
     ).subscribe(
       (value: any) => {
         const status = value['status']
@@ -82,7 +82,7 @@ export class AuthComponent implements OnInit {
 
   checkUsers () {
     this.http.get(
-      `http://localhost:4000/api/users/all`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/users/all`
     ).subscribe(
       (value: any) => {
         const status = value['status']

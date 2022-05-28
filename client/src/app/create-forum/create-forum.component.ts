@@ -17,7 +17,7 @@ export class CreateForumComponent implements OnInit {
 
   addForum () {
     this.http.get(
-      `http://localhost:4000/api/forums/create/?title=${this.title}`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/forums/create/?title=${this.title}`
     ).subscribe(
       (value: any) => {
         const status = value['status']

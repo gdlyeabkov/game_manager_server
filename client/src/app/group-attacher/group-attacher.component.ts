@@ -20,7 +20,7 @@ export class GroupAttacherComponent implements OnInit {
 
   checkUser () {
     this.http.get(
-      `http://localhost:4000/api/users/check/?login=${this.email}&password=${this.password}`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/users/check/?login=${this.email}&password=${this.password}`
     ).subscribe(
       (value: any) => {
         const status = value['status']
@@ -33,14 +33,14 @@ export class GroupAttacherComponent implements OnInit {
               const currentUserId = value['id']
               talkId = innerValue['talk']
               this.http.get(
-                `http://localhost:4000/api/logins/external/add/?id=${currentUserId}&name=${this.email}`
+                `https://loud-reminiscent-jackrabbit.glitch.me/api/logins/external/add/?id=${currentUserId}&name=${this.email}`
               ).subscribe(
                 (value: any) => {
                   const status = value['status']
                   let isOk = status === "OK"
                   if (isOk) {
                     this.http.get(
-                      `http://localhost:4000/api/talks/relations/add/?id=${talkId}&user=${currentUserId}&msg=${'mockMsgId'}`
+                      `https://loud-reminiscent-jackrabbit.glitch.me/api/talks/relations/add/?id=${talkId}&user=${currentUserId}&msg=${'mockMsgId'}`
                     ).subscribe(
                       (nestedValue: any) => {
                       }

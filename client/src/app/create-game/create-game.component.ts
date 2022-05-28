@@ -36,7 +36,7 @@ export class CreateGameComponent implements OnInit {
   }
 
   createGame (currentForm:HTMLFormElement) {
-    this.form!.nativeElement.action = `http://localhost:4000/?api/games/create/?name=${this.gameName}&url=${`https://digitaldistributtionservice.herokuapp.com/api/games/distributive?name=${this.gameName}`}&url=${`https://digitaldistributtionservice.herokuapp.com/api/games/thumbnail?name=${this.gameName}`}`;
+    this.form!.nativeElement.action = `https://loud-reminiscent-jackrabbit.glitch.me/api/games/create/?name=${this.gameName}&url=${`https://digitaldistributtionservice.herokuapp.com/api/games/distributive?name=${this.gameName}`}&url=${`https://digitaldistributtionservice.herokuapp.com/api/games/thumbnail?name=${this.gameName}`}`;
     this.form!.nativeElement.submit()
   }
 
@@ -144,7 +144,7 @@ export class CreateGameComponent implements OnInit {
 
   getTags () {
     this.http.get(
-      `http://localhost:4000/api/games/tags/all`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/games/tags/all`
     ).subscribe(
       (value: any) => {
         const status = value['status'];

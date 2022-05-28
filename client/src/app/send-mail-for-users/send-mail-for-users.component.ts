@@ -23,7 +23,7 @@ export class SendMailForUsersComponent implements OnInit {
 
   sendMail () {
     this.http.get(
-      `http://localhost:4000/api/users/notify/?start=${this.startDate}&end=${this.endDate}`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/users/notify/?start=${this.startDate}&end=${this.endDate}`
     ).subscribe(
       (value: any) => {
         const status = value['status']

@@ -20,7 +20,7 @@ export class CreateUserComponent implements OnInit {
 
   createUser () {
     this.http.get(
-      `http://localhost:4000/api/users/create/?login=${this.email}&password=${this.password}&confirmPassword=${this.confirmPassword}&role=admin`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/users/create/?login=${this.email}&password=${this.password}&confirmPassword=${this.confirmPassword}&role=admin`
     ).subscribe(
       (value: any) => {
         const status = value['status']

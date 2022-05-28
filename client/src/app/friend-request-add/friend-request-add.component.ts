@@ -20,7 +20,7 @@ export class FriendRequestAddComponent implements OnInit {
 
   checkUser () {
     this.http.get(
-      `http://localhost:4000/api/users/check/?login=${this.email}&password=${this.password}`
+      `https://loud-reminiscent-jackrabbit.glitch.me/api/users/check/?login=${this.email}&password=${this.password}`
     ).subscribe(
       (value: any) => {
         const status = value['status']
@@ -34,14 +34,14 @@ export class FriendRequestAddComponent implements OnInit {
               const currentUserId = value['id']
               friendId = innerValue['friend']
               this.http.get(
-                `http://localhost:4000/api/logins/external/add/?id=${currentUserId}&name=${this.email}`
+                `https://loud-reminiscent-jackrabbit.glitch.me/api/logins/external/add/?id=${currentUserId}&name=${this.email}`
               ).subscribe(
                 (value: any) => {
                   const status = value['status']
                   let isOk = status === "OK"
                   if (isOk) {
                     this.http.get(
-                      `http://localhost:4000/api/friends/requests/add/?id=${currentUserId}&friend=${friendId}`
+                      `https://loud-reminiscent-jackrabbit.glitch.me/api/friends/requests/add/?id=${currentUserId}&friend=${friendId}`
                     ).subscribe(
                       (nestedValue: any) => {
                       }
