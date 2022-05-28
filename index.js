@@ -6558,7 +6558,6 @@ fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
 
 // node_media_server.run();
 nms.run();
-nms.
 
 server.listen(port, () => {
     
