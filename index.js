@@ -24,7 +24,8 @@ const nodemailer = require("nodemailer")
 
 const jwt = require('jsonwebtoken')
 
-const node_media_server = require('./media_server')
+// const node_media_server = require('./media_server')
+const { nms, StreamModel } = require('./media_server')
 
 io.on('connection', client => {
     clients.push(client)
@@ -111,27 +112,27 @@ var transporter = nodemailer.createTransport({
     }
 })
 
-// const { ExpressPeerServer } = require('peer')
-// const peerServer = ExpressPeerServer(server, {
-//     debug: true
-// })
-// var lastPeerId = '#'
-// var peerIndex = -1
-// var peerClients = []
-// peerServer.on('connection', function(client) {
-//     lastPeerId = client.id
-//     peerClients.push(lastPeerId)
-//     peerIndex += 1
-//     let clientPeerId = '#'
-//     if (peerIndex === 1) {
-//         clientPeerId = peerClients[0]
-//     }
-//     clientPeerId
-//     console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex} , а id другого клиента ${clientPeerId}`)
-//     console.log(`server._clients: ${server._clients}`)
-//     io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}|${clientPeerId}`)
-// })
-// app.use('/peerjs', peerServer)
+const { ExpressPeerServer } = require('peer')
+const peerServer = ExpressPeerServer(server, {
+    debug: true
+})
+var lastPeerId = '#'
+var peerIndex = -1
+var peerClients = []
+peerServer.on('connection', function(client) {
+    lastPeerId = client.id
+    peerClients.push(lastPeerId)
+    peerIndex += 1
+    let clientPeerId = '#'
+    if (peerIndex === 1) {
+        clientPeerId = peerClients[0]
+    }
+    clientPeerId
+    console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex} , а id другого клиента ${clientPeerId}`)
+    console.log(`server._clients: ${server._clients}`)
+    io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}|${clientPeerId}`)
+})
+app.use('/peerjs', peerServer)
 
 const gameStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -564,15 +565,15 @@ const UserNickNameSchema = new mongoose.Schema({
 
 const UserNickNameModel = mongoose.model('UserNickNameModel', UserNickNameSchema)
 
-const StreamSchema = new mongoose.Schema({
-    stream: String,
-    users: {
-        type: Number,
-        default: 0
-    }
-})
+// const StreamSchema = new mongoose.Schema({
+//     stream: String,
+//     users: {
+//         type: Number,
+//         default: 0
+//     }
+// })
 
-const StreamModel = mongoose.model('StreamModel', StreamSchema)
+// const StreamModel = mongoose.model('StreamModel', StreamSchema)
 
 const FeedBackSchema = new mongoose.Schema({
     user: String,
@@ -6555,10 +6556,12 @@ fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
     }
 })
 
-node_media_server.run();
+// node_media_server.run();
+nms.run();
+nms.
 
 server.listen(port, () => {
     
 })
 
-// exports.StreamModel = StreamModel;
+// module.exports.StreamModel = StreamModel;
