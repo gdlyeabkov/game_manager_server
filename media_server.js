@@ -17,10 +17,6 @@ nms = new NodeMediaServer(config);
 nms.on('prePublish', async (id, StreamPath, args) => {
     let stream_key = getStreamKeyFromStreamPath(StreamPath);
     console.log('[NodeEvent on prePublish]', `id=${id} StreamPath=${StreamPath} args=${JSON.stringify(args)}`);
-        
-    // let session = nms.getSession(id);
-    // session.reject();
-    //helpers.generateStreamThumbnail(stream_key)
     
     const stream = new StreamModel({ stream: stream_key })
     stream.save(function (err) {

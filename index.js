@@ -4,27 +4,16 @@ const path = require('path')
 const serveStatic = require('serve-static')
 const app = express()
 
-// const server = require('http').createServer(app)
 const server = require('http').Server(app)
 
 const { Server } = require("socket.io");
 
-// const io = new Server(server)
-// const io = require("socket.io")(server, {
-//     serveClient: false,
-//     origins: '*:*',
-//     transports: ['polling'],
-//     pingInterval: 10000,
-//     pingTimeout: 5000,
-//     cookie: false
-// })
 const io = require("socket.io")(server)
 
 const nodemailer = require("nodemailer")
 
 const jwt = require('jsonwebtoken')
 
-// const node_media_server = require('./media_server')
 const { nms, StreamModel } = require('./media_server')
 
 io.on('connection', client => {
@@ -67,7 +56,6 @@ io.on('connection', client => {
     })
     client.on('user_request_peer_id', (msg) => {
         console.log(`user request peer id: ${msg}`)
-        // io.sockets.emit('user_transfer_peer_id', `${msg}|${lastPeerId}`)
     })
     client.on('user_send_group_request', (msg) => {
         console.log(`user send group request: ${msg}`)
@@ -96,43 +84,13 @@ const fs = require('fs')
 
 const multer  = require('multer')
 
-// const fetch = require('node-fetch');
-// import fetch from 'node-fetch';
-// import fetch from 'cross-fetch';
-
 var transporter = nodemailer.createTransport({
     service: 'Gmail',
-    // auth: {
-    //     user: process.env.MAIL_LOGIN,
-    //     pass: process.env.MAIL_PASSWORD
-    // }
     auth: {
         user: 'glebdyakov2000@gmail.com',
         pass: 'ttolpqpdzbigrkhz'
     }
 })
-
-// const { ExpressPeerServer } = require('peer')
-// const peerServer = ExpressPeerServer(server, {
-//     debug: true
-// })
-// var lastPeerId = '#'
-// var peerIndex = -1
-// var peerClients = []
-// peerServer.on('connection', function(client) {
-//     lastPeerId = client.id
-//     peerClients.push(lastPeerId)
-//     peerIndex += 1
-//     let clientPeerId = '#'
-//     if (peerIndex === 1) {
-//         clientPeerId = peerClients[0]
-//     }
-//     clientPeerId
-//     console.log(`client с id: ${lastPeerId} был подключен под индексом ${peerIndex} , а id другого клиента ${clientPeerId}`)
-//     console.log(`server._clients: ${server._clients}`)
-//     io.sockets.emit('user_transfer_peer_id', `${peerIndex}|${lastPeerId}|${clientPeerId}`)
-// })
-// app.use('/peerjs', peerServer)
 
 const gameStorage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -267,7 +225,6 @@ const manualsStorage = multer.diskStorage({
     filename: function (req, file, cb) {
         const pathSeparator = path.sep
         const pathToDir = `${__dirname}${pathSeparator}`
-        // const manualId = req.query.id
         const manualId = 'hash'
         const manualPath = `${pathToDir}uploads/manuals`
         const isManualPathExists = fs.existsSync(manualPath)
@@ -564,16 +521,6 @@ const UserNickNameSchema = new mongoose.Schema({
 })
 
 const UserNickNameModel = mongoose.model('UserNickNameModel', UserNickNameSchema)
-
-// const StreamSchema = new mongoose.Schema({
-//     stream: String,
-//     users: {
-//         type: Number,
-//         default: 0
-//     }
-// })
-
-// const StreamModel = mongoose.model('StreamModel', StreamSchema)
 
 const FeedBackSchema = new mongoose.Schema({
     user: String,
@@ -1237,8 +1184,6 @@ app.get('/api/experiment/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // console.log('отправляю фото')
-
     fs.readdir(`${__dirname}/uploads/experiments/${req.query.id}`, (err, data) => {
         if (err) {
             return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
@@ -1246,7 +1191,6 @@ app.get('/api/experiment/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -1371,8 +1315,6 @@ app.get('/api/experiment/document', (req, res) => {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     res.setHeader('Content-disposition', 'attachment; filename='+ `${req.query.id}.xps`);
 
-    // console.log('отправляю документ')
-
         fs.readdir(`${__dirname}/uploads/experiments/${req.query.id}`, (err, data) => {
         if (err) {
             return res.sendFile(`${__dirname}/uploads/defaults/default_experiment_document.doc`)
@@ -1380,8 +1322,6 @@ app.get('/api/experiment/document', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                // console.log(`file: ${file}; mime: ${mime}`)
-                // const isWord = mime.includes('application/msword')
                 const isWord = mime.includes('application/msword') || mime.includes('application/vnd.openxmlformats-officedocument.wordprocessingml.document') || mime.includes('application/vnd.ms-word.document.macroEnabled')
                 if (isWord) {
                     ext = path.extname(file)
@@ -3570,8 +3510,6 @@ app.get('/api/groups/relations/add', async (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // await GroupRequestModel.deleteOne({ _id: req.query.request })
-
     const groupRelation = new GroupRelationModel({ group: req.query.id, user: req.query.user })
     groupRelation.save(function (err) {
         if (err) {
@@ -4442,7 +4380,6 @@ app.post('/api/screenshots/add', screenShotsUpload.any(), async (req, res) => {
             
         })
 
-        // return res.redirect('/')
         return res.json({
             status: 'OK',
             id: generatedId
@@ -4620,8 +4557,6 @@ app.get('/api/user/avatar', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // console.log('отправляю аватар')
-
     fs.readdir(`${__dirname}/uploads/users/${req.query.id}`, (err, data) => {
         if (err) {
             return res.sendFile(`${__dirname}/uploads/defaults/default_avatar.png`)
@@ -4629,7 +4564,6 @@ app.get('/api/user/avatar', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -4655,8 +4589,6 @@ app.get('/api/game/thumbnail', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // console.log('отправляю миниатюру')
-
     fs.readdir(`${__dirname}/uploads/games/${req.query.name}`, (err, data) => {
         if (err) {
             return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
@@ -4664,7 +4596,6 @@ app.get('/api/game/thumbnail', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -4690,8 +4621,6 @@ app.get('/api/manual/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // console.log('отправляю фото')
-
     fs.readdir(`${__dirname}/uploads/manuals`, (err, data) => {
         if (err) {
             return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
@@ -4699,7 +4628,6 @@ app.get('/api/manual/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -4725,8 +4653,6 @@ app.get('/api/illustration/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // console.log('отправляю фото')
-
     fs.readdir(`${__dirname}/uploads/illustrations`, (err, data) => {
         if (err) {
             return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
@@ -4734,7 +4660,6 @@ app.get('/api/illustration/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -4760,8 +4685,6 @@ app.get('/api/screenshot/photo', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // console.log('отправляю фото')
-
     fs.readdir(`${__dirname}/uploads/screenShots`, (err, data) => {
         if (err) {
             return res.sendFile(`${__dirname}/uploads/defaults/default_thumbnail.png`)
@@ -4769,7 +4692,6 @@ app.get('/api/screenshot/photo', (req, res) => {
             let ext = ''
             for (let file of data) {
                 const mime = mimeTypes.lookup(file) || ''
-                // console.log(`file: ${file}; mime: ${mime}`)
                 const isImg = mime.includes('image')
                 if (isImg) {
                     ext = path.extname(file)
@@ -4795,8 +4717,6 @@ app.get('/api/msgs/thumbnail', (req, res) => {
     res.setHeader("Access-Control-Allow-Headers", "X-Requested-With, X-Access-Token, X-Socket-ID, Content-Type");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, PATCH, DELETE");
     
-    // console.log('отправляю миниатюру сообщения')
-
     return res.sendFile(`${__dirname}/uploads/msgs/${req.query.id}${req.query.content}`)
 
 })
@@ -4810,8 +4730,6 @@ app.get('/api/game/distributive', (req, res) => {
     res.setHeader('Content-type', 'application/x-msdownload');
     res.setHeader('Content-disposition', 'attachment; filename='+ `${req.query.name}.exe`);
     
-    // console.log(`отправляю дистрибутив ${__dirname}/uploads/games/${req.query.name}/${req.query.name}.exe ${req.query.name}.exe`)
-
     res.writeHead(200, {"Content-Type": "application/x-msdownload"})
     let file = fs.createReadStream(__dirname + `/uploads/games/${req.query.name}/${req.query.name}.exe`)
     file.pipe(res)
@@ -5804,7 +5722,6 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
         let newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(req.query.imgext)}`
         fs.rename(experimentPath, newExperimentPath, (err) => {
             console.log(`req.query.imgext: ${req.query.imgext} req.query.docext: ${req.query.docext}`)
-            // experimentPath = `${pathToDir}uploads/experiments/hash1.doc`
             experimentPath = `${pathToDir}uploads/experiments/hash1.${mimeTypes.extension(req.query.docext)}`
           
             fs.readdir(`${pathToDir}uploads/experiments`, async (err, data) => {
@@ -5828,11 +5745,6 @@ app.post('/api/experiments/create', experimentsUpload.fields([{name: 'experiment
                     })
                 }
             })
-
-            // newExperimentPath = `${experimentFolderPath}/${generatedId}.${mimeTypes.extension(req.query.docext)}`
-            // fs.rename(experimentPath, newExperimentPath, (err) => {
-                
-            // })
 
         })
     })
@@ -6426,8 +6338,6 @@ app.get('/api/users/email/set/accept', (req, res) => {
 
     console.log(`отправил письмо на ${req.query.to} для обновления почты код: ${req.query.code}`)
 
-    // return res.json({ status: 'OK' })
-    
 })
 
 app.get('/api/users/password/set', (req, res) => {
@@ -6488,8 +6398,6 @@ app.get('/api/users/password/set/accept', (req, res) => {
 
     console.log(`отправил письмо на ${req.query.to} для обновления пароля код: ${req.query.code}`)
 
-    // return res.json({ status: 'OK' })
-    
 })
 
 app.get('/api/users/token/check', (req, res) => {
@@ -6532,7 +6440,6 @@ app.get('**', async (req, res) => {
 })
 
 const port = 4000
-// const port = process.env.PORT || 8080
 
 var clients = []
 
@@ -6556,11 +6463,8 @@ fs.writeFile(statsFilePath, rawStatsData, (err, data) => {
     }
 })
 
-// node_media_server.run();
 nms.run();
 
 server.listen(port, () => {
     
 })
-
-// module.exports.StreamModel = StreamModel;

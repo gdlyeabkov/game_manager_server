@@ -29,8 +29,6 @@ export class HomeComponent implements OnInit {
           this.router.navigate(['groups/attach'], { queryParams: { talk: talkParam } })
         } else if (isFriendParamExists) {
           this.router.navigate(['friends/requests/add'], { queryParams: { friend: friendParam } })
-        } else {
-          // this.checkToken();
         }
       }
     )

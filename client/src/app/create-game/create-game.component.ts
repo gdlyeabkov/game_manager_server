@@ -154,7 +154,6 @@ export class CreateGameComponent implements OnInit {
           for (let tag of totalTags) {
             this.tags.push(new GameTagCheckBoxData(tag['_id'], tag['title']))
           }
-          // this.tags = totalTags
         }
       }
     );
